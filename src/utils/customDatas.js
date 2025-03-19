@@ -1,0 +1,88 @@
+import {ref} from "vue";
+
+export const featuredBooks = ref([
+    {
+        id: 1,
+        title: "Suç ve Ceza",
+        author: "Dostoyevski",
+        image: "https://picsum.photos/300/450?random=1",
+        price: 120,
+        discountedPrice: 90,
+        isFree: false,
+        category: "Roman",
+        language: "Türkçe",
+        year: 2020,
+        pages: 450,
+        description: "Dostoyevski'nin en önemli eserlerinden biri..."
+    },
+    {
+        id: 2,
+        title: "1984",
+        author: "George Orwell",
+        image: "https://picsum.photos/300/450?random=2",
+        price: 95,
+        discountedPrice: null,
+        isFree: false,
+        category: "Bilim Kurgu",
+        language: "Türkçe",
+        year: 2021,
+        pages: 328,
+        description: "Distopik bir geleceği anlatan klasik..."
+    },
+    {
+        id: 3,
+        title: "Hayvan Çiftliği",
+        author: "George Orwell",
+        image: "https://picsum.photos/300/450?random=3",
+        price: 75,
+        discountedPrice: 60,
+        isFree: false,
+        category: "Roman",
+        language: "Türkçe",
+        year: 2019,
+        pages: 152,
+        description: "Siyasi bir alegori olarak yazılmış..."
+    },
+    {
+        id: 4,
+        title: "Sefiller",
+        author: "Victor Hugo",
+        image: "https://picsum.photos/300/450?random=4",
+        price: 140,
+        discountedPrice: null,
+        isFree: false,
+        category: "Roman",
+        language: "Türkçe",
+        year: 2018,
+        pages: 720,
+        description: "19. yüzyıl Fransa'sında geçen..."
+    },
+    {
+        id: 5,
+        title: "Python Programlama",
+        author: "Ahmet Yılmaz",
+        image: "https://picsum.photos/300/450?random=5",
+        price: 0,
+        discountedPrice: null,
+        isFree: true,
+        category: "Teknoloji",
+        language: "Türkçe",
+        year: 2023,
+        pages: 280,
+        description: "Python programlama dilini öğrenmek için..."
+    },
+    {
+        id: 6,
+        title: "Dune",
+        author: "Frank Herbert",
+        image: "https://picsum.photos/300/450?random=6",
+        price: 110,
+        discountedPrice: 90,
+        isFree: false,
+        category: "Bilim Kurgu",
+        language: "İngilizce",
+        year: 2021,
+        pages: 512,
+        description: "Uzak bir gelecekte geçen epik bilim kurgu..."
+    },
+]);
