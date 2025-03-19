@@ -7,6 +7,7 @@ import Register from "@/views/Register.vue";
 import ForgotPassword from "@/views/ForgotPassword.vue";
 import Switch from "@/views/Switch.vue";
 import Settings from "@/views/Settings.vue";
+import BookDetails from "@/views/BookDetails.vue";
 
 const routes = [
     {
@@ -50,7 +51,13 @@ const routes = [
         path: "/settings",
         name: "Ayarlar",
         component: Settings
-    }
+    },
+    {
+        path: '/book/:id',
+        name: 'Kitap Detayı',
+        component: BookDetails,
+        props: true,
+    },
 ];
 
 const router = createRouter({

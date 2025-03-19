@@ -204,6 +204,7 @@ import { useStore } from "vuex";
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { debounce } from 'lodash';
 import {featuredBooks} from "@/utils/customDatas.js";
+import router from "@/router/index.js";
 
 // Store ve state tanımlamaları
 const store = useStore();
@@ -414,13 +415,10 @@ const isFavorite = (id) => {
   return favorites.value.includes(id);
 };
 
-// Kitap detaylarını açma
 const openBookDetails = (book) => {
-  console.log("Kitap detayları açılıyor:", book);
-  // Burada kitap detay sayfasına yönlendirme veya modal açma işlemi yapılabilir
+  router.push('/book/'+book.id);
 };
 
-// Fiyat formatı (para birime göre)
 const formatPrice = (price) => {
   if (price === 0) return "Ücretsiz";
 
@@ -431,7 +429,6 @@ const formatPrice = (price) => {
     GBP: "£"
   };
 
-  // Fiyatı seçilen para birimine çevir
   const convertedPrice = price * currencyRates.value[selectedCurrency.value];
 
   return `${currencySymbols[selectedCurrency.value]}${convertedPrice.toFixed(2)}`;
