@@ -3,13 +3,13 @@
     <router-link to="/" class="brand-link" :style="themedStyles.brandLink">Virtara Group</router-link>
     <input type="search" placeholder="Genel arama yapın..." :style="themedStyles.searchInput" />
     <span class="sub">
-      <div v-if="currentUser.valueOf().user.role === '1'">
+      <div v-if="currentUser.user.role === '1'">
         <router-link to="/manage" :style="themedStyles.link">Yönet</router-link>
       </div>
 
       <div class="dropdown">
         <button class="dropdown-button" @click="toggleDropdown" :style="themedStyles.dropdownButton">
-          {{ currentUser.valueOf().user ? currentUser.valueOf().user.email : 'Hesap' }}
+          {{ currentUser.user ? currentUser.user.email : 'Hesap' }}
           <span class="dropdown-icon">▼</span>
         </button>
         <div class="dropdown-menu" v-if="isDropdownOpen" :style="themedStyles.dropdownMenu">
@@ -18,7 +18,7 @@
               v-for="(account, index) in accounts"
               :key="index"
               class="account-item"
-              :class="{ 'active': currentUser && account.email === currentUser.valueOf().user.email }"
+              :class="{ 'active': currentUser.user && account.email === currentUser.user.email }"
               @click="switchAccount(account)"
               :style="themedStyles.dropdownItem"
           >
@@ -49,7 +49,7 @@ const isDropdownOpen = ref(false);
 const accounts = computed(() => store.state.user.accounts || []);
 const currentUser = computed(() => store.state.user);
 const theme = computed(() => store.state.ui.theme);
-const requirePasswordForSwitch = computed(() => store.state.settings?.requirePasswordForSwitch || false);
+const requirePasswordForSwitch = computed(() => store.state.user.settings?.requirePasswordForSwitch || false);
 
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
@@ -72,7 +72,7 @@ onUnmounted(() => {
 
 const switchAccount = (account) => {
   if (requirePasswordForSwitch.value) {
-    store.commit('setSelectedAccount', account);
+    store.dispatch('user/setSelectedAccount', account);
     router.push('/account-switch');
   } else {
     store.dispatch('user/switchAccount', account);
@@ -81,7 +81,7 @@ const switchAccount = (account) => {
 };
 
 const logout = () => {
-  store.dispatch('logout');
+  store.dispatch('user/logout');
   router.push('/login');
   isDropdownOpen.value = false;
 };

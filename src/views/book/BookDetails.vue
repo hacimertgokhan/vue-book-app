@@ -1,74 +1,82 @@
 <template>
-  <div class="book-detail-container" :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor }">
-    <div v-if="book" class="book-content">
-      <div class="book-image-section">
-        <img :src="book.coverImage" :alt="book.title" class="book-cover" />
-        <div class="book-actions">
-          <button class="action-button primary" :style="{ backgroundColor: getThemeStyles.accentColor, color: getThemeStyles.buttonTextColor }">
-            Satın Al
-          </button>
-          <button class="action-button secondary" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
-            <span class="heart-icon">♥</span> Favorilere Ekle
-          </button>
-          <router-link to="/" class="back-button" :style="{ color: getThemeStyles.accentColor }">
-            <span class="back-icon">←</span> Ana Sayfaya Dön
-          </router-link>
-        </div>
-      </div>
-
-      <div class="book-info-section">
-        <h1 class="book-title" :style="{ color: getThemeStyles.textColor }">{{ book.title }}</h1>
-
-        <div class="book-meta" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }">
-          <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
-            <span class="label" :style="{ color: getThemeStyles.labelColor }">Yazar</span>
-            <span class="value">{{ book.author }}</span>
-          </div>
-          <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
-            <span class="label" :style="{ color: getThemeStyles.labelColor }">Kategori</span>
-            <span class="value category-tag">{{ book.category }}</span>
-          </div>
-          <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
-            <span class="label" :style="{ color: getThemeStyles.labelColor }">Yayın Yılı</span>
-            <span class="value">{{ book.year }}</span>
-          </div>
-          <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
-            <span class="label" :style="{ color: getThemeStyles.labelColor }">Sayfa Sayısı</span>
-            <span class="value">{{ book.pageCount }}</span>
+  <div class="fullscreen" :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor }">
+    <div class="book-detail-container" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor }">
+      <div v-if="book" class="book-content">
+        <div class="book-image-section">
+          <img :src="book.coverImage" height="350" :alt="book.title" class="book-cover" />
+          <div class="book-actions">
+            <button class="action-button primary" :style="{ backgroundColor: getThemeStyles.accentColor, color: getThemeStyles.buttonTextColor }">
+              Satın Al
+            </button>
+            <button class="action-button secondary" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
+              <span class="heart-icon">♥</span> Favorilere Ekle
+            </button>
+            <router-link to="/" class="back-button" :style="{ color: getThemeStyles.accentColor }">
+              <span class="back-icon">←</span> Ana Sayfaya Dön
+            </router-link>
           </div>
         </div>
 
-        <div class="book-description" :style="{ color: getThemeStyles.textColor }">
-          <h2 :style="{ color: getThemeStyles.textColor }">Kitap Hakkında</h2>
-          <p>{{ book.summary }}</p>
-        </div>
+        <div class="book-info-section">
+          <h1 class="book-title" :style="{ color: getThemeStyles.textColor }">{{ book.title }}</h1>
 
-        <div class="price-section" v-if="book.price" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }">
-          <div class="price-tag" v-if="book.discountedPrice">
-            <span class="original-price">{{ book.price }}₺</span>
-            <span class="discounted-price">{{ book.discountedPrice }}₺</span>
-            <span class="discount-badge">
+          <div class="book-meta" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }">
+            <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
+              <span class="label" :style="{ color: getThemeStyles.labelColor }">Yazar</span>
+              <span class="value">{{ book.author }}</span>
+            </div>
+            <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
+              <span class="label" :style="{ color: getThemeStyles.labelColor }">Kategori</span>
+              <span class="value category-tag">{{ book.category }}</span>
+            </div>
+            <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
+              <span class="label" :style="{ color: getThemeStyles.labelColor }">Yayın Yılı</span>
+              <span class="value">{{ book.year }}</span>
+            </div>
+            <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
+              <span class="label" :style="{ color: getThemeStyles.labelColor }">Sayfa Sayısı</span>
+              <span class="value">{{ book.pageCount }}</span>
+            </div>
+          </div>
+
+          <div class="book-description" :style="{ color: getThemeStyles.textColor }">
+            <h2 :style="{ color: getThemeStyles.textColor }">Kitap Hakkında</h2>
+            <p>{{ book.summary }}</p>
+          </div>
+
+          <div class="price-section" v-if="book.price" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }">
+            <div class="price-tag" v-if="book.discountedPrice">
+              <span class="original-price">{{ book.price }}₺</span>
+              <span class="discounted-price">{{ book.discountedPrice }}₺</span>
+              <span class="discount-badge">
               %{{ Math.round((1 - book.discountedPrice/book.price) * 100) }} İndirim
             </span>
-          </div>
-          <div class="price-tag" v-else>
-            <span class="current-price">{{ book.price }}₺</span>
+            </div>
+            <div class="price-tag" v-else>
+              <span class="current-price">{{ book.price }}₺</span>
+            </div>
           </div>
         </div>
       </div>
+
+      <div v-else class="not-found">
+        <h2>Kitap Bulunamadı</h2>
+        <p>Aradığınız kitap mevcut değil veya kaldırılmış olabilir.</p>
+        <router-link to="/" class="back-button not-found-back" :style="{ color: getThemeStyles.accentColor }">
+          <span class="back-icon">←</span> Ana Sayfaya Dön
+        </router-link>
+      </div>
     </div>
 
-    <div v-else class="not-found">
-      <h2>Kitap Bulunamadı</h2>
-      <p>Aradığınız kitap mevcut değil veya kaldırılmış olabilir.</p>
-      <router-link to="/" class="back-button not-found-back" :style="{ color: getThemeStyles.accentColor }">
-        <span class="back-icon">←</span> Ana Sayfaya Dön
-      </router-link>
-    </div>
   </div>
 </template>
 
 <style scoped>
+.fullscreen {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
 .book-detail-container {
   max-width: 1280px;
   margin: 2rem auto;
