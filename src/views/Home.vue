@@ -1,13 +1,264 @@
+<script setup>
+import Layout from "../components/Layout.vue";
+import { useStore } from "vuex";
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
+import { debounce } from 'lodash';
+import router from "@/router/index.js";
+
+const store = useStore();
+const currentIndex = ref(0);
+const slideWidth = ref(320);
+const viewMode = ref('grid');
+const searchQuery = ref('');
+const isLoading = computed(() => store.state.books.loading);
+const page = ref(1);
+const totalPages = ref(10);
+const currentUser = computed(() => store.state.user);
+
+const selectedCurrency = ref('TRY');
+const currencyRates = ref({
+  TRY: 1,
+  USD: 0.033,
+  EUR: 0.030,
+  GBP: 0.026
+});
+
+const carouselRef = ref(null);
+const sortBy = ref('releaseDate');
+const priceMin = ref(0);
+const priceMax = ref(1000);
+const yearMin = ref(1900);
+const yearMax = ref(2025);
+const pageMin = ref(0);
+const pageMax = ref(1000);
+
+const filters = ref({
+  category: '',
+  language: '',
+  priceRange: [0, 1000],
+  yearRange: [1900, 2025],
+  pageRange: [0, 1000],
+  onlyFree: false
+});
+const categories = ref([
+  'Roman', 'Bilim Kurgu', 'Tarih', 'Felsefe', 'Biyografi',
+  'Psikoloji', 'Çocuk Kitapları', 'Bilim', 'İş', 'Teknoloji'
+]);
+
+const languages = ref([
+  'Türkçe', 'İngilizce', 'Fransızca', 'Almanca', 'İspanyolca'
+]);
+
+const favorites = ref([]);
+
+const allBooks = computed(() => store.state.books.books || []);
+const featuredBooks = computed(() => store.state.books.books ? store.state.books.books.slice(0, 6) : []);
+console.log(featuredBooks.value)
+
+const loadMoreBooks = async () => {
+  if (isLoading.value || page.value >= totalPages.value) return;
+
+  // Create sample new books based on existing ones
+  if (allBooks.value.length > 0) {
+    const newBooks = allBooks.value.slice(0, 6).map(book => ({
+      ...book,
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      title: `${book.title} - Kopya ${page.value}`,
+      image: `https://picsum.photos/300/450?random=${Math.floor(Math.random() * 100)}`
+    }));
+
+    // Use the store action to add these books
+    newBooks.forEach(book => {
+      store.dispatch('books/addBook', book);
+    });
+
+    page.value++;
+  }
+};
+
+onMounted(() => {
+  // Fetch books from localStorage on mount
+  store.dispatch('books/fetchBooks');
+
+  const observer = new IntersectionObserver((entries) => {
+    const target = entries[0];
+    if (target.isIntersecting) {
+      loadMoreBooks();
+    }
+  }, { threshold: 0.1 });
+
+  if (document.querySelector('.loading-indicator')) {
+    observer.observe(document.querySelector('.loading-indicator'));
+  }
+
+  if (carouselRef.value) {
+    nextTick(() => {
+      slideWidth.value = carouselRef.value.offsetWidth * 0.8;
+    });
+  }
+
+  window.addEventListener('resize', handleResize);
+  startAutoSlide();
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+  stopAutoSlide();
+});
+
+const handleResize = debounce(() => {
+  if (carouselRef.value) {
+    slideWidth.value = carouselRef.value.offsetWidth * 0.8;
+  }
+}, 200);
+
+let interval;
+const startAutoSlide = () => {
+  interval = setInterval(() => {
+    nextSlide();
+  }, 5000);
+};
+
+const stopAutoSlide = () => {
+  clearInterval(interval);
+};
+
+const nextSlide = () => {
+  if (featuredBooks.value.length > 0) {
+    currentIndex.value = (currentIndex.value + 1) % featuredBooks.value.length;
+  }
+};
+
+const prevSlide = () => {
+  if (featuredBooks.value.length > 0) {
+    currentIndex.value = (currentIndex.value - 1 + featuredBooks.value.length) % featuredBooks.value.length;
+  }
+};
+
+const goToSlide = (index) => {
+  currentIndex.value = index;
+};
+
+const debouncedSearch = debounce(() => {
+  console.log("Arama yapılıyor:", searchQuery.value);
+}, 200);
+
+watch(searchQuery, () => {
+  debouncedSearch();
+});
+
+const clearFilters = () => {
+  filters.value = {
+    category: '',
+    language: '',
+    priceRange: [priceMin.value, priceMax.value],
+    yearRange: [yearMin.value, yearMax.value],
+    pageRange: [pageMin.value, pageMax.value],
+    onlyFree: false
+  };
+  searchQuery.value = '';
+};
+
+const toggleFavorite = (book) => {
+  const index = favorites.value.findIndex(id => id === book.id);
+  if (index === -1) {
+    favorites.value.push(book.id);
+  } else {
+    favorites.value.splice(index, 1);
+  }
+};
+
+const isFavorite = (id) => {
+  return favorites.value.includes(id);
+};
+
+const openBookDetails = (book) => {
+  store.dispatch('books/selectBook', book.id);
+  router.push('/book/'+book.id);
+};
+
+const formatPrice = (price) => {
+  if (price === 0) return "Ücretsiz";
+
+  const currencySymbols = {
+    TRY: "₺",
+    USD: "$",
+    EUR: "€",
+    GBP: "£"
+  };
+
+  const convertedPrice = price * currencyRates.value[selectedCurrency.value];
+
+  return `${currencySymbols[selectedCurrency.value]}${convertedPrice.toFixed(2)}`;
+};
+
+const filteredBooks = computed(() => {
+  let result = allBooks.value.filter(book => {
+    if (searchQuery.value && !book.title.toLowerCase().includes(searchQuery.value.toLowerCase()) &&
+        !book.author.toLowerCase().includes(searchQuery.value.toLowerCase())) {
+      return false;
+    }
+
+    if (filters.value.category && book.category !== filters.value.category) {
+      return false;
+    }
+
+    if (filters.value.language && book.language !== filters.value.language) {
+      return false;
+    }
+
+    const bookPrice = book.discountedPrice || book.price;
+    if (bookPrice < filters.value.priceRange[0] || bookPrice > filters.value.priceRange[1]) {
+      return false;
+    }
+
+    if (book.year < filters.value.yearRange[0] || book.year > filters.value.yearRange[1]) {
+      return false;
+    }
+
+    if (book.pages < filters.value.pageRange[0] || book.pages > filters.value.pageRange[1]) {
+      return false;
+    }
+
+    if (filters.value.onlyFree && !book.isFree) {
+      return false;
+    }
+
+    return true;
+  });
+
+  switch (sortBy.value) {
+    case 'releaseDate':
+      result.sort((a, b) => b.year - a.year);
+      break;
+    case 'priceAsc':
+      result.sort((a, b) => (a.discountedPrice || a.price) - (b.discountedPrice || b.price));
+      break;
+    case 'priceDesc':
+      result.sort((a, b) => (b.discountedPrice || b.price) - (a.discountedPrice || a.price));
+      break;
+    case 'name':
+      result.sort((a, b) => a.title.localeCompare(b.title));
+      break;
+  }
+
+  return result;
+});
+
+// Compute special book collections from the store getters
+const freeBooks = computed(() => store.getters['books/freeBooks']);
+const discountedBooks = computed(() => store.getters['books/discountedBooks']);
+</script>
+
 <template>
   <Layout>
     <div class="main-container">
       <header class="welcome-section">
-        <h1 class="greeting">Merhaba, {{ store.state.user.username }}</h1>
+        <h1 class="greeting">Merhaba, {{ currentUser.valueOf().user.username }}</h1>
         <h2 class="subheading">Bu gün hangi kitaplara göz gezdirmek istersin?</h2>
       </header>
 
-      <!-- Kitap Karüseli (Slider) -->
-      <section class="featured-books">
+      <section class="featured-books" v-if="featuredBooks.length > 0">
         <h3 class="section-title">Öne Çıkan Kitaplar</h3>
         <div class="carousel-container">
           <button class="carousel-btn left" @click="prevSlide">
@@ -47,15 +298,9 @@
           <button class="carousel-btn right" @click="nextSlide">
             <span class="icon">›</span>
           </button>
-          <div class="carousel-indicators">
-            <span v-for="(_, index) in featuredBooks" :key="`indicator-${index}`"
-                  class="indicator" :class="{ 'active': index === currentIndex }"
-                  @click="goToSlide(index)"></span>
-          </div>
         </div>
       </section>
 
-      <!-- Filtreleme ve Kontrol Paneli -->
       <section class="controls-section">
         <div class="filter-controls">
           <div class="search-box">
@@ -148,10 +393,16 @@
         </div>
       </section>
 
-      <!-- Tüm Kitaplar (Grid veya List görünümünde) -->
       <section class="all-books">
         <h3 class="section-title">Tüm Kitaplar</h3>
-        <div class="book-display" :class="viewMode">
+        <div v-if="isLoading && !filteredBooks.length" class="loading-message">
+          <span class="loading-spinner"></span>
+          <span>Kitaplar yükleniyor...</span>
+        </div>
+        <div v-else-if="!filteredBooks.length" class="no-books-message">
+          Kriterlere uygun kitap bulunamadı. Lütfen filtrelerinizi değiştirin.
+        </div>
+        <div v-else class="book-display" :class="viewMode">
           <div v-for="book in filteredBooks" :key="`book-${book.id}`"
                class="book-item" :class="{ 'list-item': viewMode === 'list' }">
             <div class="book-card" :class="{ 'list-card': viewMode === 'list' }">
@@ -187,315 +438,71 @@
           </div>
         </div>
 
-        <!-- Sonsuz Scroll için Yükleniyor göstergesi -->
-        <div v-if="isLoading" class="loading-indicator">
+        <div v-if="!isLoading && filteredBooks.length > 0 && page.value < totalPages.value" class="loading-indicator">
           <span class="loading-spinner"></span>
           <span>Daha fazla kitap yükleniyor...</span>
         </div>
       </section>
+
+      <!-- New Discounted Books Section -->
+      <section class="discounted-books" v-if="discountedBooks.length > 0">
+        <h3 class="section-title">İndirimli Kitaplar</h3>
+        <div class="book-display grid">
+          <div v-for="book in discountedBooks.slice(0, 4)" :key="`discount-${book.id}`" class="book-item">
+            <div class="book-card">
+              <div class="book-image-container">
+                <img :src="book.image" :alt="book.title" class="book-image" />
+                <div class="book-overlay">
+                  <button class="quick-view-btn" @click="openBookDetails(book)">Hızlı Bakış</button>
+                  <button class="favorite-btn" @click="toggleFavorite(book)">
+                    <span class="favorite-icon" :class="{ 'favorited': isFavorite(book.id) }">♥</span>
+                  </button>
+                </div>
+              </div>
+              <div class="book-info">
+                <h4 class="book-title">{{ book.title }}</h4>
+                <p class="book-author">{{ book.author }}</p>
+                <div class="book-price">
+                  <span class="original-price" style="text-decoration: line-through">{{ formatPrice(book.price) }}</span>
+                  <span class="discounted-price">{{ formatPrice(book.discountedPrice) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- New Free Books Section -->
+      <section class="free-books" v-if="freeBooks.length > 0">
+        <h3 class="section-title">Ücretsiz Kitaplar</h3>
+        <div class="book-display grid">
+          <div v-for="book in freeBooks.slice(0, 4)" :key="`free-${book.id}`" class="book-item">
+            <div class="book-card">
+              <div class="book-image-container">
+                <img :src="book.image" :alt="book.title" class="book-image" />
+                <div class="book-overlay">
+                  <button class="quick-view-btn" @click="openBookDetails(book)">Hızlı Bakış</button>
+                  <button class="favorite-btn" @click="toggleFavorite(book)">
+                    <span class="favorite-icon" :class="{ 'favorited': isFavorite(book.id) }">♥</span>
+                  </button>
+                </div>
+              </div>
+              <div class="book-info">
+                <h4 class="book-title">{{ book.title }}</h4>
+                <p class="book-author">{{ book.author }}</p>
+                <div class="book-price">
+                  <span>Ücretsiz</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-    <GridBackground />
   </Layout>
 </template>
 
-<script setup>
-import Layout from "../components/Layout.vue";
-import { useStore } from "vuex";
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
-import { debounce } from 'lodash';
-import {featuredBooks} from "@/utils/customDatas.js";
-import router from "@/router/index.js";
 
-// Store ve state tanımlamaları
-const store = useStore();
-const currentIndex = ref(0);
-const slideWidth = ref(320); // Her slide'ın genişliği
-const viewMode = ref('grid'); // 'grid' veya 'list'
-const searchQuery = ref('');
-const isLoading = ref(false);
-const page = ref(1);
-const totalPages = ref(10); // Varsayılan değer
-
-// Para birimi ve dönüşüm oranları
-const selectedCurrency = ref('TRY');
-const currencyRates = ref({
-  TRY: 1,
-  USD: 0.033, // 1 TRY = 0.033 USD
-  EUR: 0.030, // 1 TRY = 0.030 EUR
-  GBP: 0.026  // 1 TRY = 0.026 GBP
-});
-
-// Carousel referansı
-const carouselRef = ref(null);
-
-// Sıralama seçeneği
-const sortBy = ref('releaseDate');
-
-// Filtre değerleri
-const priceMin = ref(0);
-const priceMax = ref(1000);
-const yearMin = ref(1900);
-const yearMax = ref(2025);
-const pageMin = ref(0);
-const pageMax = ref(1000);
-
-const filters = ref({
-  category: '',
-  language: '',
-  priceRange: [0, 1000],
-  yearRange: [1900, 2025],
-  pageRange: [0, 1000],
-  onlyFree: false
-});
-
-// Örnek kategori ve dil verileri
-const categories = ref([
-  'Roman', 'Bilim Kurgu', 'Tarih', 'Felsefe', 'Biyografi',
-  'Psikoloji', 'Çocuk Kitapları', 'Bilim', 'İş', 'Teknoloji'
-]);
-
-const languages = ref([
-  'Türkçe', 'İngilizce', 'Fransızca', 'Almanca', 'İspanyolca'
-]);
-
-const favorites = ref([]);
-
-const allBooks = ref([
-  ...featuredBooks.value,
-  {
-    id: 7,
-    title: "Güneşin Altında",
-    author: "Mehmet Kara",
-    image: "https://picsum.photos/300/450?random=7",
-    price: 85,
-    discountedPrice: null,
-    isFree: false,
-    category: "Roman",
-    language: "Türkçe",
-    year: 2022,
-    pages: 240,
-    description: "Anadolu'da geçen etkileyici bir hikaye..."
-  },
-  {
-    id: 8,
-    title: "Yapay Zeka Temelleri",
-    author: "Ali Tekin",
-    image: "https://picsum.photos/300/450?random=8",
-    price: 160,
-    discountedPrice: 120,
-    isFree: false,
-    category: "Teknoloji",
-    language: "Türkçe",
-    year: 2024,
-    pages: 380,
-    description: "Yapay zeka ve makine öğrenimi konularında temel bilgiler..."
-  },
-]);
-
-// Sonsuz scroll için daha fazla kitap yükleme fonksiyonu
-const loadMoreBooks = async () => {
-  if (isLoading.value || page.value >= totalPages.value) return;
-
-  isLoading.value = true;
-  // Simüle edilmiş API çağrısı
-  setTimeout(() => {
-    // Her yeni sayfada mevcut kitapların kopyalarını farklı ID'lerle ekleyelim
-    const newBooks = allBooks.value.slice(0, 6).map(book => ({
-      ...book,
-      id: allBooks.value.length + Math.floor(Math.random() * 1000),
-      title: `${book.title} - Kopya ${page.value}`,
-      image: `https://picsum.photos/300/450?random=${allBooks.value.length + Math.floor(Math.random() * 100)}`
-    }));
-
-    allBooks.value = [...allBooks.value, ...newBooks];
-    page.value++;
-    isLoading.value = false;
-  }, 1000);
-};
-
-// Sonsuz scroll için observer
-onMounted(() => {
-  const observer = new IntersectionObserver((entries) => {
-    const target = entries[0];
-    if (target.isIntersecting) {
-      loadMoreBooks();
-    }
-  }, { threshold: 0.1 });
-
-  if (document.querySelector('.loading-indicator')) {
-    observer.observe(document.querySelector('.loading-indicator'));
-  }
-
-  // Carousel genişliğini hesapla
-  if (carouselRef.value) {
-    nextTick(() => {
-      slideWidth.value = carouselRef.value.offsetWidth * 0.8;
-    });
-  }
-
-  // Window boyut değişikliğini dinle
-  window.addEventListener('resize', handleResize);
-
-  // Karüselin otomatik kaydırmasını başlat
-  startAutoSlide();
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-  stopAutoSlide();
-});
-
-// Window boyut değişikliği için handler
-const handleResize = debounce(() => {
-  if (carouselRef.value) {
-    slideWidth.value = carouselRef.value.offsetWidth * 0.8;
-  }
-}, 200);
-
-// Carousel fonksiyonları
-let interval;
-const startAutoSlide = () => {
-  interval = setInterval(() => {
-    nextSlide();
-  }, 5000);
-};
-
-const stopAutoSlide = () => {
-  clearInterval(interval);
-};
-
-const nextSlide = () => {
-  currentIndex.value = (currentIndex.value + 1) % featuredBooks.value.length;
-};
-
-const prevSlide = () => {
-  currentIndex.value = (currentIndex.value - 1 + featuredBooks.value.length) % featuredBooks.value.length;
-};
-
-const goToSlide = (index) => {
-  currentIndex.value = index;
-};
-
-// Debounce ile arama fonksiyonu
-const debouncedSearch = debounce(() => {
-  // Burada API çağrısı yapılabilir
-  console.log("Arama yapılıyor:", searchQuery.value);
-}, 200);
-
-// SearchQuery değiştiğinde debounce ile arama yap
-watch(searchQuery, () => {
-  debouncedSearch();
-});
-
-// Filtreleri temizleme fonksiyonu
-const clearFilters = () => {
-  filters.value = {
-    category: '',
-    language: '',
-    priceRange: [priceMin.value, priceMax.value],
-    yearRange: [yearMin.value, yearMax.value],
-    pageRange: [pageMin.value, pageMax.value],
-    onlyFree: false
-  };
-  searchQuery.value = '';
-};
-
-// Favorilere ekleme/çıkarma fonksiyonu
-const toggleFavorite = (book) => {
-  const index = favorites.value.findIndex(id => id === book.id);
-  if (index === -1) {
-    favorites.value.push(book.id);
-  } else {
-    favorites.value.splice(index, 1);
-  }
-};
-
-// Favorilerde olup olmadığını kontrol etme
-const isFavorite = (id) => {
-  return favorites.value.includes(id);
-};
-
-const openBookDetails = (book) => {
-  router.push('/book/'+book.id);
-};
-
-const formatPrice = (price) => {
-  if (price === 0) return "Ücretsiz";
-
-  const currencySymbols = {
-    TRY: "₺",
-    USD: "$",
-    EUR: "€",
-    GBP: "£"
-  };
-
-  const convertedPrice = price * currencyRates.value[selectedCurrency.value];
-
-  return `${currencySymbols[selectedCurrency.value]}${convertedPrice.toFixed(2)}`;
-};
-
-// Filtrelenmiş ve sıralanmış kitaplar
-const filteredBooks = computed(() => {
-  let result = allBooks.value.filter(book => {
-    // Arama filtreleme
-    if (searchQuery.value && !book.title.toLowerCase().includes(searchQuery.value.toLowerCase()) &&
-        !book.author.toLowerCase().includes(searchQuery.value.toLowerCase())) {
-      return false;
-    }
-
-    // Kategori filtreleme
-    if (filters.value.category && book.category !== filters.value.category) {
-      return false;
-    }
-
-    // Dil filtreleme
-    if (filters.value.language && book.language !== filters.value.language) {
-      return false;
-    }
-
-    // Fiyat aralığı filtreleme
-    const bookPrice = book.discountedPrice || book.price;
-    if (bookPrice < filters.value.priceRange[0] || bookPrice > filters.value.priceRange[1]) {
-      return false;
-    }
-
-    // Yayın yılı filtreleme
-    if (book.year < filters.value.yearRange[0] || book.year > filters.value.yearRange[1]) {
-      return false;
-    }
-
-    // Sayfa sayısı filtreleme
-    if (book.pages < filters.value.pageRange[0] || book.pages > filters.value.pageRange[1]) {
-      return false;
-    }
-
-    // Sadece ücretsiz filtreleme
-    if (filters.value.onlyFree && !book.isFree) {
-      return false;
-    }
-
-    return true;
-  });
-
-  // Sıralama
-  switch (sortBy.value) {
-    case 'releaseDate':
-      result.sort((a, b) => b.year - a.year);
-      break;
-    case 'priceAsc':
-      result.sort((a, b) => (a.discountedPrice || a.price) - (b.discountedPrice || b.price));
-      break;
-    case 'priceDesc':
-      result.sort((a, b) => (b.discountedPrice || b.price) - (a.discountedPrice || a.price));
-      break;
-    case 'name':
-      result.sort((a, b) => a.title.localeCompare(b.title));
-      break;
-  }
-
-  return result;
-});
-</script>
 
 <style scoped>
 /* Ana container */

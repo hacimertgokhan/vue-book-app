@@ -2,13 +2,15 @@
   <footer class="footer">
     <span class="brand">Virtara Group - Kitap yönetim sistemi. Bütün hakları saklıdır.</span>
     <span class="user-info">
-      <span>{{ store.state.user.username }}</span> - <span>{{ store.state.user.role === "0" ? 'Kullanıcı' : 'Admin' }}</span>
+      <span>{{ currentUser.valueOf().user.username }}</span> - <span>{{ currentUser.valueOf().user.role === "0" ? 'Kullanıcı' : 'Admin' }}</span>
     </span>
   </footer>
 </template>
 
 <script setup>
 import { useStore } from "vuex";
+import {computed} from "vue";
+const currentUser = computed(() => store.state.user);
 
 const store = useStore();
 </script>

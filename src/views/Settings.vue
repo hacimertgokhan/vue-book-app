@@ -1,59 +1,66 @@
 <template>
-  <div class="settings-container">
-    <h1>Ayarlar</h1>
+  <Layout>
+    <div class="settings-container">
+      <h1>Ayarlar</h1>
 
-    <div class="settings-section">
-      <h2>Hesap Güvenliği</h2>
+      <div class="settings-section">
+        <h2>Hesap Güvenliği</h2>
 
-      <div class="setting-item">
-        <div class="setting-info">
-          <h3>Hesap Değiştirme Güvenliği</h3>
-          <p>Hesaplar arasında geçiş yaparken şifre sorulsun mu?</p>
-        </div>
-        <div class="setting-control">
-          <label class="switch">
-            <input type="checkbox" v-model="requirePasswordForSwitch" @change="saveSettings">
-            <span class="slider"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <h3>Kayıtlı Hesaplar</h3>
-          <p>Sisteme giriş yapmış hesapların listesi</p>
-        </div>
-      </div>
-
-      <div class="accounts-list">
-        <div v-for="(account, index) in accounts" :key="index" class="account-list-item">
-          <div class="account-info">
-            <strong>{{ account.username }}</strong>
-            <span>{{ account.email }}</span>
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Hesap Değiştirme Güvenliği</h3>
+            <p>Hesaplar arasında geçiş yaparken şifre sorulsun mu?</p>
           </div>
-          <button @click="removeAccount(index)" class="remove-btn">Kaldır</button>
+          <div class="setting-control">
+            <label class="switch">
+              <input type="checkbox" v-model="requirePasswordForSwitch" @change="saveSettings">
+              <span class="slider"></span>
+            </label>
+          </div>
         </div>
-        <p v-if="accounts.length === 0" class="no-accounts">Henüz kayıtlı hesap bulunmuyor.</p>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Kayıtlı Hesaplar</h3>
+            <p>Sisteme giriş yapmış hesapların listesi</p>
+          </div>
+        </div>
+
+        <div class="accounts-list">
+          <div v-for="(account, index) in accounts" :key="index" class="account-list-item">
+            <div class="account-info">
+              <strong>{{ account.username }}</strong>
+              <span>{{ account.email }}</span>
+            </div>
+            <button @click="removeAccount(index)" class="remove-btn">Kaldır</button>
+          </div>
+          <p v-if="accounts.length === 0" class="no-accounts">Henüz kayıtlı hesap bulunmuyor.</p>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button @click="goBack" class="secondary-button">Geri Dön</button>
       </div>
     </div>
-
-    <div class="button-group">
-      <button @click="goBack" class="secondary-button">Geri Dön</button>
-    </div>
-  </div>
+  </Layout>
 </template>
 
 <script>
 import { mapState } from "vuex";
+import Layout from "@/components/Layout.vue";
 
 export default {
+  components: {Layout},
   data() {
     return {
       requirePasswordForSwitch: false,
     };
   },
   computed: {
-    ...mapState(["accounts", "settings"]),
+    ...mapState(["user/accounts"]),
+    accounts() {
+      return this.$store.state.user.accounts;
+    }
   },
   methods: {
     saveSettings() {
@@ -67,9 +74,8 @@ export default {
 
       this.$store.commit("setAccounts", updatedAccounts);
 
-      // Eğer aktif hesap silindiyse, çıkış yap
       if (this.$store.state.user && this.$store.state.user.email === removedAccount.email) {
-        this.$store.dispatch("logout");
+        this.$store.dispatch("user/logout");
         this.$router.push("/login");
       }
     },
@@ -78,7 +84,6 @@ export default {
     }
   },
   created() {
-    // Ayarları yükle
     if (this.settings) {
       this.requirePasswordForSwitch = this.settings.requirePasswordForSwitch;
     }
@@ -98,7 +103,7 @@ h1 {
 }
 
 .settings-section {
-  background: #ffffff;
+  background: #202020;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 20px;
@@ -110,7 +115,6 @@ h2 {
   margin-bottom: 20px;
   padding-bottom: 10px;
   border-bottom: 1px solid #eee;
-  color: #333;
 }
 
 .setting-item {
@@ -128,12 +132,10 @@ h2 {
 .setting-info h3 {
   margin: 0 0 5px;
   font-size: 16px;
-  color: #333;
 }
 
 .setting-info p {
   margin: 0;
-  color: #666;
   font-size: 14px;
 }
 
@@ -192,7 +194,7 @@ input:checked + .slider:before {
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background: #f9f9f9;
+  background: #09090b;
   border-radius: 4px;
   margin-bottom: 8px;
 }
@@ -204,12 +206,10 @@ input:checked + .slider:before {
 
 .account-info strong {
   font-size: 14px;
-  color: #333;
 }
 
 .account-info span {
   font-size: 12px;
-  color: #666;
 }
 
 .remove-btn {
@@ -248,9 +248,5 @@ input:checked + .slider:before {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
-}
-
-.secondary-button:hover {
-  background: #f0f0f0;
 }
 </style>

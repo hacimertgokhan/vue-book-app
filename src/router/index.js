@@ -7,7 +7,11 @@ import Register from "@/views/Register.vue";
 import ForgotPassword from "@/views/ForgotPassword.vue";
 import Switch from "@/views/Switch.vue";
 import Settings from "@/views/Settings.vue";
-import BookDetails from "@/views/BookDetails.vue";
+import BookDetails from "@/views/book/BookDetails.vue";
+import Manage from "@/views/Manage.vue";
+import Profile from "@/views/Profile.vue";
+import EditBook from "@/views/book/EditBook.vue";
+import AddBook from "@/views/book/AddBook.vue";
 
 const routes = [
     {
@@ -53,9 +57,30 @@ const routes = [
         component: Settings
     },
     {
+        path: "/manage",
+        name: "Yönet",
+        component: Manage
+    },
+    {
+        path: "/profile",
+        name: "Profil",
+        component: Profile
+    },
+    {
+        path: "/add-book",
+        name: "Kitap Ekleme",
+        component: AddBook
+    },
+    {
         path: '/book/:id',
         name: 'Kitap Detayı',
         component: BookDetails,
+        props: true,
+    },
+    {
+        path: '/edit-book/:id',
+        name: 'Kitap Düzenleme',
+        component: EditBook,
         props: true,
     },
 ];

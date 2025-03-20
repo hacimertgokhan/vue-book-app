@@ -4,14 +4,12 @@
     <router-link to="/" class="border" style="font-size: 24px">Virtara Group</router-link>
     <input type="search" placeholder="Genel arama yapın..." />
     <span class="sub">
-      <router-link to="/books">Kitaplar</router-link>
-      <router-link to="/favorites">Favorilerim</router-link>
       <div v-if="currentUser.role === '1'">
         <router-link to="/manage">Yönet</router-link>
       </div>
       <div class="dropdown">
         <button class="dropdown-button" @click="toggleDropdown">
-          {{ currentUser ? currentUser.email : 'Hesap' }}
+          {{ currentUser.valueOf().user ? currentUser.valueOf().user.email : 'Hesap' }}
           <span class="dropdown-icon">▼</span>
         </button>
         <div class="dropdown-menu" v-if="isDropdownOpen">
@@ -20,7 +18,7 @@
               v-for="(account, index) in accounts"
               :key="index"
               class="account-item"
-              :class="{ 'active': currentUser && account.email === currentUser.email }"
+              :class="{ 'active': currentUser && account.email === currentUser.valueOf().user.email }"
               @click="switchAccount(account)"
           >
             {{ account.email }}
@@ -43,7 +41,8 @@ import { useRouter } from 'vue-router';
 const store = useStore();
 const router = useRouter();
 const isDropdownOpen = ref(false);
-const accounts = computed(() => store.state.accounts || []);
+const accounts = computed(() => store.state.user.accounts || []);
+console.log(accounts)
 const currentUser = computed(() => store.state.user);
 const requirePasswordForSwitch = computed(() => store.state.settings?.requirePasswordForSwitch || false);
 
@@ -59,8 +58,7 @@ const closeDropdown = (event) => {
 
 onMounted(() => {
   document.addEventListener('click', closeDropdown);
-  // Hesaplar listesini yükle
-  store.dispatch('loadAccounts');
+  store.dispatch('user/loadAccounts');
 });
 
 onUnmounted(() => {
@@ -72,7 +70,7 @@ const switchAccount = (account) => {
     store.commit('setSelectedAccount', account);
     router.push('/account-switch');
   } else {
-    store.dispatch('switchAccount', account);
+    store.dispatch('user/switchAccount', account);
     isDropdownOpen.value = false;
   }
 };

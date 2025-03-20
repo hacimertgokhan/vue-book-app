@@ -53,14 +53,14 @@
             <span class="current-price">{{ book.price }}₺</span>
           </div>
         </div>
-        <a style="position:absolute;bottom: 0; right: 0;" href="/">Ana sayfaya dön</a>
+        <a style="position:absolute;bottom: 0; right: 0;" href="/public">Ana sayfaya dön</a>
       </div>
     </div>
 
     <div v-else class="not-found">
       <h2>Kitap bulunamadı.</h2>
       <p>Aradığınız kitap mevcut değil veya kaldırılmış olabilir.</p>
-      <a href="/">Ana sayfaya dön</a>
+      <a href="/public">Ana sayfaya dön</a>
     </div>
   </div>
 </template>
@@ -252,7 +252,7 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { featuredBooks } from '../utils/customDatas.js';
+import { featuredBooks } from '../../utils/customDatas.js';
 
 export default {
   setup() {

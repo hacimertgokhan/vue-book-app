@@ -31,21 +31,22 @@ export default {
     return { toast };
   },
   methods: {
-    ...mapActions(["login"]),
-    handleLogin() { // Renamed the method to handleLogin
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-      const user = users.find(user => user.email === this.email);
+      ...mapActions("user", ["login"]),
+      handleLogin() {
+        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const user = users.find(user => user.email === this.email);
 
-      if (!user || user.password !== this.password) {
-        this.errorMessage = "E-posta veya şifre hatalı!";
-        this.toast.error("E-posta veya şifre hatalı!");
-        return;
+        if (!user || user.password !== this.password) {
+          this.errorMessage = "E-posta veya şifre hatalı!";
+          this.toast.error("E-posta veya şifre hatalı!");
+          return;
+        }
+
+        console.log(user);
+        this.login(user); // Doğru şekilde çağrılmalı
+        this.toast.success("Giriş başarılı !");
+        this.$router.push("/");
       }
-
-      this.login(user);  // Calls vuex action for login
-      this.toast.success("Giriş başarılı !");
-      this.$router.push("/");
-    },
   },
 };
 </script>
