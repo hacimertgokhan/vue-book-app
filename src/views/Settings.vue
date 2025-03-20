@@ -1,15 +1,15 @@
 <template>
   <Layout>
-    <div class="settings-container">
-      <h1>Ayarlar</h1>
+    <div class="settings-container" :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor }">
+      <h1 :style="{ color: getThemeStyles.textColor }">Ayarlar</h1>
 
-      <div class="settings-section">
-        <h2>Hesap Güvenliği</h2>
+      <div class="settings-section" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, borderColor: getThemeStyles.borderColor }">
+        <h2 :style="{ color: getThemeStyles.textColor }">Hesap Güvenliği</h2>
 
-        <div class="setting-item">
+        <div class="setting-item" :style="{ borderColor: getThemeStyles.borderColor }">
           <div class="setting-info">
-            <h3>Hesap Değiştirme Güvenliği</h3>
-            <p>Hesaplar arasında geçiş yaparken şifre sorulsun mu?</p>
+            <h3 :style="{ color: getThemeStyles.textColor }">Hesap Değiştirme Güvenliği</h3>
+            <p :style="{ color: getThemeStyles.textColor }">Hesaplar arasında geçiş yaparken şifre sorulsun mu?</p>
           </div>
           <div class="setting-control">
             <label class="switch">
@@ -19,27 +19,27 @@
           </div>
         </div>
 
-        <div class="setting-item">
+        <div class="setting-item" :style="{ borderColor: getThemeStyles.borderColor }">
           <div class="setting-info">
-            <h3>Kayıtlı Hesaplar</h3>
-            <p>Sisteme giriş yapmış hesapların listesi</p>
+            <h3 :style="{ color: getThemeStyles.textColor }">Kayıtlı Hesaplar</h3>
+            <p :style="{ color: getThemeStyles.textColor }">Sisteme giriş yapmış hesapların listesi</p>
           </div>
         </div>
 
         <div class="accounts-list">
-          <div v-for="(account, index) in accounts" :key="index" class="account-list-item">
+          <div v-for="(account, index) in accounts" :key="index" class="account-list-item" :style="{ backgroundColor: getThemeStyles.backgroundColor }">
             <div class="account-info">
-              <strong>{{ account.username }}</strong>
-              <span>{{ account.email }}</span>
+              <strong :style="{ color: getThemeStyles.textColor }">{{ account.username }}</strong>
+              <span :style="{ color: getThemeStyles.textColor }">{{ account.email }}</span>
             </div>
             <button @click="removeAccount(index)" class="remove-btn">Kaldır</button>
           </div>
-          <p v-if="accounts.length === 0" class="no-accounts">Henüz kayıtlı hesap bulunmuyor.</p>
+          <p v-if="accounts.length === 0" class="no-accounts" :style="{ color: getThemeStyles.textColor }">Henüz kayıtlı hesap bulunmuyor.</p>
         </div>
       </div>
 
       <div class="button-group">
-        <button @click="goBack" class="secondary-button">Geri Dön</button>
+        <button @click="goBack" class="secondary-button" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">Geri Dön</button>
       </div>
     </div>
   </Layout>
@@ -50,7 +50,7 @@ import { mapState } from "vuex";
 import Layout from "@/components/Layout.vue";
 
 export default {
-  components: {Layout},
+  components: { Layout },
   data() {
     return {
       requirePasswordForSwitch: false,
@@ -60,11 +60,20 @@ export default {
     ...mapState(["user/accounts"]),
     accounts() {
       return this.$store.state.user.accounts;
-    }
+    },
+    getThemeStyles() {
+      const isDarkTheme = this.$store.state.ui.theme === 'dark';
+      return {
+        backgroundColor: isDarkTheme ? '#09090b' : '#FFFFFF',
+        textColor: isDarkTheme ? '#e2e2e2' : '#333333',
+        borderColor: isDarkTheme ? '#202020' : '#DDDDDD',
+        inputBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
+      };
+    },
   },
   methods: {
     saveSettings() {
-      this.$store.dispatch("updateAccountSettings", {
+      this.$store.dispatch("user/updateAccountSettings", {
         requirePasswordForSwitch: this.requirePasswordForSwitch
       });
     },
@@ -72,7 +81,7 @@ export default {
       const updatedAccounts = [...this.accounts];
       const removedAccount = updatedAccounts.splice(index, 1)[0];
 
-      this.$store.commit("setAccounts", updatedAccounts);
+      this.$store.commit("user/SET_ACCOUNTS", updatedAccounts);
 
       if (this.$store.state.user && this.$store.state.user.email === removedAccount.email) {
         this.$store.dispatch("user/logout");
@@ -93,21 +102,24 @@ export default {
 
 <style scoped>
 .settings-container {
-  max-width: 800px;
+  max-width: 1150px;
   margin: 0 auto;
+  width: 100%;
   padding: 20px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1 {
   margin-bottom: 30px;
+  transition: color 0.3s ease;
 }
 
 .settings-section {
-  background: #202020;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 20px;
   margin-bottom: 20px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 h2 {
@@ -115,6 +127,7 @@ h2 {
   margin-bottom: 20px;
   padding-bottom: 10px;
   border-bottom: 1px solid #eee;
+  transition: color 0.3s ease;
 }
 
 .setting-item {
@@ -123,6 +136,7 @@ h2 {
   align-items: center;
   padding: 15px 0;
   border-bottom: 1px solid #eee;
+  transition: border-color 0.3s ease;
 }
 
 .setting-info {
@@ -132,11 +146,13 @@ h2 {
 .setting-info h3 {
   margin: 0 0 5px;
   font-size: 16px;
+  transition: color 0.3s ease;
 }
 
 .setting-info p {
   margin: 0;
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 /* Toggle switch */
@@ -194,9 +210,9 @@ input:checked + .slider:before {
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background: #09090b;
   border-radius: 4px;
   margin-bottom: 8px;
+  transition: background-color 0.3s ease;
 }
 
 .account-info {
@@ -206,10 +222,12 @@ input:checked + .slider:before {
 
 .account-info strong {
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .account-info span {
   font-size: 12px;
+  transition: color 0.3s ease;
 }
 
 .remove-btn {
@@ -229,9 +247,9 @@ input:checked + .slider:before {
 
 .no-accounts {
   font-style: italic;
-  color: #666;
   text-align: center;
   padding: 15px;
+  transition: color 0.3s ease;
 }
 
 .button-group {
@@ -242,11 +260,10 @@ input:checked + .slider:before {
 }
 
 .secondary-button {
-  background: transparent;
-  border: 1px solid #333;
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
+  border: 1px solid #333;
 }
 </style>

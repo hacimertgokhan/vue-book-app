@@ -4,25 +4,28 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const viewMode = ref('grid'); // Varsayılan görünüm: grid
-const books = ref([]); // Kitapları tutacak reaktif bir dizi
+const viewMode = ref('grid');
+const books = ref([]);
 const searchQuery = ref('');
 
+const showDeleteModal = ref(false);
+const bookIdToDelete = ref(null);
+
 onMounted(() => {
-  loadBooks(); // Sayfa yüklendiğinde kitapları yükle
+  loadBooks();
 });
 
 const loadBooks = () => {
   try {
     const storedBooks = localStorage.getItem('books');
     if (storedBooks) {
-      books.value = JSON.parse(storedBooks).map(book => ({ ...book, showEdit: false }));
+      books.value = JSON.parse(storedBooks).map(book => ({...book, showEdit: false}));
     } else {
-      books.value = []; // Eğer hiç kitap yoksa boş bir dizi ata
+      books.value = [];
     }
   } catch (error) {
     console.error("Kitaplar yüklenirken bir hata oluştu:", error);
-    books.value = []; // Hata durumunda da boş bir dizi ata ki uygulama çökmesin
+    books.value = [];
   }
 };
 
@@ -34,15 +37,33 @@ const filteredBooks = computed(() => {
 });
 
 const switchViewMode = (mode) => {
-  viewMode.value = mode; // Görünüm modunu güncelle
+  viewMode.value = mode;
 };
 
 const navigateToEdit = (bookId) => {
-  router.push(`/edit-book/${bookId}`); // Düzenleme sayfasına yönlendir
+  router.push(`/edit-book/${bookId}`);
 };
 
 const navigateToAdd = () => {
-  router.push('/add-book'); // Ekleme sayfasına yönlendir
+  router.push('/add-book');
+};
+
+const openDeleteModal = (bookId) => {
+  bookIdToDelete.value = bookId;
+  showDeleteModal.value = true;
+};
+
+const confirmDeleteBook = () => {
+  if (bookIdToDelete.value !== null) {
+    books.value = books.value.filter(book => book.id !== bookIdToDelete.value);
+    localStorage.setItem('books', JSON.stringify(books.value));
+    closeDeleteModal();
+  }
+};
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false;
+  bookIdToDelete.value = null;
 };
 
 </script>
@@ -102,17 +123,27 @@ const navigateToAdd = () => {
               </div>
               <div class="book-overlay" v-if="book.showEdit">
                 <button class="quick-view-btn" @click="navigateToEdit(book.id)">Düzenle</button>
+                <button class="delete-book-btn" @click.stop="openDeleteModal(book.id)">Sil</button>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      <div v-if="showDeleteModal" class="modal">
+        <div class="modal-content">
+          <p>Bu kitabı silmek istediğinizden emin misiniz?</p>
+          <div class="modal-actions">
+            <button @click="confirmDeleteBook" class="confirm-btn">Evet, Sil</button>
+            <button @click="closeDeleteModal" class="cancel-btn">İptal</button>
+          </div>
+        </div>
+      </div>
     </div>
   </Layout>
 </template>
 
 <style scoped>
-/* Ana container */
 .main-container {
   display: flex;
   flex-direction: column;
@@ -120,13 +151,11 @@ const navigateToAdd = () => {
   margin: 40px auto;
   width: 90%;
   max-width: 1200px;
-  background: #09090b;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Welcome Section */
 .welcome-section {
   margin-bottom: 20px;
 }
@@ -139,36 +168,30 @@ const navigateToAdd = () => {
   font-weight: 400;
   font-size: 20px;
   margin-bottom: 5px;
-  color: #e2e2e2;
 }
 
 .subheading {
   font-weight: 400;
   font-size: 35px;
   margin-top: 0;
-  color: #e2e2e2;
 }
 
-/* Section başlıkları */
 .section-title {
   font-size: 24px;
   font-weight: 500;
   margin-bottom: 20px;
   border-bottom: 2px solid #202020;
   padding-bottom: 10px;
-  color: #e2e2e2;
 }
 
-/* Filtreleme ve Kontrol Paneli */
 .controls-section {
-  background: #202020;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   margin-bottom: 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .filter-controls {
@@ -180,7 +203,6 @@ const navigateToAdd = () => {
 .search-box {
   display: flex;
   align-items: center;
-  background: #101010;
   border-radius: 25px;
   padding: 10px 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -193,12 +215,10 @@ const navigateToAdd = () => {
   font-size: 16px;
   padding: 5px;
   background: transparent;
-  color: #e2e2e2;
 }
 
 .search-icon {
   font-size: 20px;
-  color: #e2e2e2;
   cursor: pointer;
 }
 
@@ -214,12 +234,11 @@ const navigateToAdd = () => {
 }
 
 .view-btn {
-  background: #101010;
   border: 1px solid #202020;
   padding: 10px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .view-btn.active {
@@ -231,12 +250,9 @@ const navigateToAdd = () => {
 .view-btn .grid-icon,
 .view-btn .list-icon {
   font-size: 18px;
-  color: #e2e2e2;
 }
 
 .add-book-button {
-  background-color: #4caf50;
-  color: #e2e2e2;
   padding: 10px 15px;
   border: none;
   border-radius: 8px;
@@ -249,7 +265,6 @@ const navigateToAdd = () => {
   background-color: #388e3c;
 }
 
-/* Tüm Kitaplar Bölümü */
 .all-books {
   margin-bottom: 40px;
 }
@@ -268,7 +283,6 @@ const navigateToAdd = () => {
 }
 
 .book-item {
-  background: #202020;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -307,27 +321,21 @@ const navigateToAdd = () => {
 .book-card.list-card .book-title {
   font-size: 18px;
   margin-bottom: 10px;
-  color: #e2e2e2;
 }
 
 .book-card.list-card .book-author {
   font-size: 14px;
-  color: #a0a0a0;
   margin-bottom: 10px;
 }
 
 .book-card.list-card .book-description {
   font-size: 14px;
-  color: #a0a0a0;
   margin-bottom: 10px;
 }
 
-/* Kitap kartları */
 .book-card {
   border-radius: 8px;
   overflow: hidden;
-  background: #202020;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   height: 100%;
   display: flex;
@@ -406,9 +414,141 @@ const navigateToAdd = () => {
   background: #f0f0f0;
 }
 
+.delete-book-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.delete-book-btn:hover {
+  background: #d32f2f;
+}
+
 .no-books-message {
   padding: 20px;
   font-size: 16px;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.confirm-btn,
+.cancel-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.confirm-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background-color: #d32f2f;
+}
+
+.cancel-btn {
+  background-color: #4caf50;
   color: #e2e2e2;
+}
+
+.cancel-btn:hover {
+  background-color: #388e3c;
+}
+
+/*Theme*/
+.main-container {
+  background-color: var(--backgroundColor);
+  color: var(--textColor);
+}
+
+h1, h2, h3, label {
+  color: var(--textColor);
+}
+
+.controls-section {
+  background-color: var(--borderColor);
+}
+
+.search-box {
+  background-color: var(--inputBackgroundColor);
+}
+
+.search-input {
+  color: var(--textColor);
+}
+
+.view-btn {
+  background-color: var(--inputBackgroundColor);
+  border-color: var(--borderColor);
+  color: var(--textColor);
+}
+
+.view-btn.active {
+  background-color: var(--accentColor);
+  border-color: var(--accentColor);
+  color: #fff;
+}
+
+.add-book-button {
+  background-color: #4caf50;
+  color: #e2e2e2;
+}
+
+.add-book-button:hover {
+  background-color: #388e3c;
+}
+
+.book-card {
+  background-color: var(--inputBackgroundColor);
+  color: var(--textColor);
+}
+
+.book-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.no-books-message {
+  color: var(--textColor);
+}
+
+.modal {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  background-color: var(--inputBackgroundColor);
+  color: var(--textColor);
 }
 </style>

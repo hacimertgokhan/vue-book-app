@@ -40,7 +40,11 @@ export default {
     UPDATE_USER(state, updatedUser) {
       state.user = { ...state.user, ...updatedUser }
       localStorage.setItem('user', JSON.stringify(state.user))
-    }
+    },
+    SET_SETTINGS(state, settings) {
+      state.settings = { ...state.settings, ...settings };
+      localStorage.setItem('settings', JSON.stringify(state.settings));
+    },
   },
   actions: {
     async login({ commit }, user) {
@@ -61,7 +65,7 @@ export default {
       return false;
     },
     updateAccountSettings({ commit }, settings) {
-      commit("updateSettings", settings);
+      commit('SET_SETTINGS', settings); // Bu 'SET_SETTINGS' mutasyonuna commit yapılacak
     },
     async loadAccounts({ commit }) {
       try {

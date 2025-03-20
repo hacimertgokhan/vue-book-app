@@ -1,15 +1,17 @@
-<template>
-  <div class="login-container">
-    <p><strong>Merhaba</strong>,<br/>Devam etmek için istenilen bilgileri doldurunuz.</p>
-    <form class="login-page" @submit.prevent="handleLogin">
-      <input v-model="email" type="email" placeholder="E-Posta" required />
-      <input v-model="password" type="password" placeholder="Şifreniz" required />
-      <button type="submit">Giriş Yap</button>
-      <div class="login-page-bottom-place">
-        <a href="/forgot-password">Şifremi unuttum.</a>
-        <a href="/register">Kayıt Ol.</a>
-      </div>
-    </form>
+<template >
+  <div class="fullscreen" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor}">
+    <div class="login-container" :style="{ backgroundColor: getThemeStyles.containerBackgroundColor, borderColor: getThemeStyles.borderColor, color: getThemeStyles.textColor }">
+      <p :style="{ color: getThemeStyles.textColor }"><strong>Merhaba</strong>,<br/>Devam etmek için istenilen bilgileri doldurunuz.</p>
+      <form class="login-page" @submit.prevent="handleLogin">
+        <input v-model="email" type="email" placeholder="E-Posta" required :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.inputBorderColor }" />
+        <input v-model="password" type="password" placeholder="Şifreniz" required :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.inputBorderColor }" />
+        <button type="submit" :style="{ backgroundColor: getThemeStyles.accentColor, color: getThemeStyles.buttonTextColor, borderColor: getThemeStyles.accentColor }">Giriş Yap</button>
+        <div class="login-page-bottom-place">
+          <a href="/forgot-password" :style="{ color: getThemeStyles.textColor }">Şifremi unuttum.</a>
+          <a href="/register" :style="{ color: getThemeStyles.textColor }">Kayıt Ol.</a>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -17,6 +19,8 @@
 import { useToast } from "vue-toastification";
 import "vue-toastification/dist/index.css";
 import { mapActions } from "vuex";
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
 export default {
   data() {
@@ -28,46 +32,68 @@ export default {
   },
   setup() {
     const toast = useToast();
-    return { toast };
+    const store = useStore();
+
+    const theme = computed(() => store.state.ui.theme);
+
+    const getThemeStyles = computed(() => {
+      const isDarkTheme = theme.value === 'dark';
+      return {
+        containerBackgroundColor: isDarkTheme ? 'rgba(9, 9, 11, 0.90)' : 'rgba(240, 240, 240, 0.90)', // Daha açık bir arka plan
+        textColor: isDarkTheme ? '#e2e2e2' : '#333333',
+        borderColor: isDarkTheme ? '#202020' : '#CCCCCC', // Daha açık bir kenarlık rengi
+        inputBackgroundColor: isDarkTheme ? '#101010' : '#FFFFFF', // Beyaz input arka planı
+        inputBorderColor: isDarkTheme ? (isDarkTheme ? '#555555' : '#999999') : '#999999', // Input kutularının alt çizgi rengi
+        buttonTextColor: isDarkTheme ? '#e2e2e2' : '#FFFFFF',
+        accentColor: isDarkTheme ? '#1976d2' : '#007bff',
+      };
+    });
+
+    return { toast, getThemeStyles };
   },
   methods: {
-      ...mapActions("user", ["login"]),
-      handleLogin() {
-        const users = JSON.parse(localStorage.getItem("users")) || [];
-        const user = users.find(user => user.email === this.email);
+    ...mapActions("user", ["login"]),
+    handleLogin() {
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      const user = users.find(user => user.email === this.email);
 
-        if (!user || user.password !== this.password) {
-          this.errorMessage = "E-posta veya şifre hatalı!";
-          this.toast.error("E-posta veya şifre hatalı!");
-          return;
-        }
-
-        console.log(user);
-        this.login(user); // Doğru şekilde çağrılmalı
-        this.toast.success("Giriş başarılı !");
-        this.$router.push("/");
+      if (!user || user.password !== this.password) {
+        this.errorMessage = "E-posta veya şifre hatalı!";
+        this.toast.error("E-posta veya şifre hatalı!");
+        return;
       }
+
+      console.log(user);
+      this.login(user); // Doğru şekilde çağrılmalı
+      this.toast.success("Giriş başarılı !");
+      this.$router.push("/");
+    }
   },
 };
 </script>
+
 <style scoped>
-.input-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-input {
+.fullscreen {
   width: 100%;
-  padding: 2px;
-  outline: none;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid #e2e2e2;
+  height: 100%;
+  position: absolute;
+}
+.login-container {
+  margin: auto;
+  z-index: 10;
+  padding: 50px;
+  border-radius: 6px;
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 0; top: 0;
+  height: fit-content;
+  text-align: left;
+  width: 350px;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.login-container p {
+  transition: color 0.3s ease;
 }
 
 .login-page {
@@ -76,48 +102,47 @@ input {
   flex-direction: column;
   justify-content: center;
   gap: 10px;
-  input {
-    outline: none;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid #e2e2e2;
-  }
-  button {
-    background: transparent;
-    margin-top: 5px;
-    padding: 6px 12px;
-    border: 1.5px solid #e2e2e2;
-    border-radius: 12px;
-  }
+  margin-top: 15px;
+}
 
+.login-page input {
+  outline: none;
+  border: none;
+  border-radius: 4px;
+  padding: 3px;
+  border-bottom: 1px solid #e2e2e2;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
-.login-container {
-  margin: auto;
-  z-index: 10;
-  padding: 50px;
-  border-radius: 6px;
-  background: #09090b90;
-  border: 1px solid #202020;
-  position: absolute;
-  left: 0; right: 0;
-  bottom: 0; top: 0;
-  height: fit-content;
-  text-align: left;
-  width: 350px;
-  p {
-    strong {
-      background: transparent;
-    }
-    background: transparent;
-  }
+
+.login-page button {
+  margin-top: 5px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  border: none;
 }
+
 .login-page-bottom-place {
   margin-top: 10px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-content: center;
+}
 
+.login-page-bottom-place a {
+  transition: color 0.3s ease;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 20px;
+    width: 90%;
+    margin: 0 auto;
+    position: static;
+    transform: none;
+  }
 }
 </style>
-

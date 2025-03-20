@@ -1,133 +1,141 @@
 <template>
-  <div class="book-detail-container">
+  <div class="book-detail-container" :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor }">
     <div v-if="book" class="book-content">
       <div class="book-image-section">
-        <img :src="book.image" :alt="book.title" class="book-cover" />
+        <img :src="book.coverImage" :alt="book.title" class="book-cover" />
         <div class="book-actions">
-          <button class="action-button primary">Satın Al</button>
-          <button class="action-button secondary">
+          <button class="action-button primary" :style="{ backgroundColor: getThemeStyles.accentColor, color: getThemeStyles.buttonTextColor }">
+            Satın Al
+          </button>
+          <button class="action-button secondary" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
             <span class="heart-icon">♥</span> Favorilere Ekle
           </button>
+          <router-link to="/" class="back-button" :style="{ color: getThemeStyles.accentColor }">
+            <span class="back-icon">←</span> Ana Sayfaya Dön
+          </router-link>
         </div>
       </div>
 
-      <div style="position:relative;" class="book-info-section">
-        <h1 class="book-title">{{ book.title }}</h1>
+      <div class="book-info-section">
+        <h1 class="book-title" :style="{ color: getThemeStyles.textColor }">{{ book.title }}</h1>
 
-        <div class="book-meta">
-          <div class="meta-item">
-            <span class="label">Yazar</span>
+        <div class="book-meta" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }">
+          <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
+            <span class="label" :style="{ color: getThemeStyles.labelColor }">Yazar</span>
             <span class="value">{{ book.author }}</span>
           </div>
-
-          <div class="meta-item">
-            <span class="label">Kategori</span>
+          <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
+            <span class="label" :style="{ color: getThemeStyles.labelColor }">Kategori</span>
             <span class="value category-tag">{{ book.category }}</span>
           </div>
-
-          <div class="meta-item">
-            <span class="label">Yayın Yılı</span>
+          <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
+            <span class="label" :style="{ color: getThemeStyles.labelColor }">Yayın Yılı</span>
             <span class="value">{{ book.year }}</span>
           </div>
-
-          <div class="meta-item">
-            <span class="label">Sayfa Sayısı</span>
-            <span class="value">{{ book.pages }}</span>
+          <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
+            <span class="label" :style="{ color: getThemeStyles.labelColor }">Sayfa Sayısı</span>
+            <span class="value">{{ book.pageCount }}</span>
           </div>
         </div>
 
-        <div class="book-description">
-          <h2>Kitap Hakkında</h2>
-          <p>{{ book.description }}</p>
+        <div class="book-description" :style="{ color: getThemeStyles.textColor }">
+          <h2 :style="{ color: getThemeStyles.textColor }">Kitap Hakkında</h2>
+          <p>{{ book.summary }}</p>
         </div>
 
-        <div class="price-section" v-if="book.price">
+        <div class="price-section" v-if="book.price" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }">
           <div class="price-tag" v-if="book.discountedPrice">
             <span class="original-price">{{ book.price }}₺</span>
             <span class="discounted-price">{{ book.discountedPrice }}₺</span>
-            <span class="discount-percentage">
-              {{ Math.round((1 - book.discountedPrice/book.price) * 100) }}% İndirim
+            <span class="discount-badge">
+              %{{ Math.round((1 - book.discountedPrice/book.price) * 100) }} İndirim
             </span>
           </div>
           <div class="price-tag" v-else>
             <span class="current-price">{{ book.price }}₺</span>
           </div>
         </div>
-        <a style="position:absolute;bottom: 0; right: 0;" href="/public">Ana sayfaya dön</a>
       </div>
     </div>
 
     <div v-else class="not-found">
-      <h2>Kitap bulunamadı.</h2>
+      <h2>Kitap Bulunamadı</h2>
       <p>Aradığınız kitap mevcut değil veya kaldırılmış olabilir.</p>
-      <a href="/public">Ana sayfaya dön</a>
+      <router-link to="/" class="back-button not-found-back" :style="{ color: getThemeStyles.accentColor }">
+        <span class="back-icon">←</span> Ana Sayfaya Dön
+      </router-link>
     </div>
   </div>
 </template>
 
 <style scoped>
 .book-detail-container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 2rem auto;
   padding: 2rem;
-  background-color: #09090b;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 .book-content {
   display: grid;
-  grid-template-columns: 350px 1fr;
+  grid-template-columns: 1fr 2fr;
   gap: 3rem;
-  color: #e2e2e2;
+  align-items: start;
 }
 
 .book-image-section {
-  position: sticky;
-  top: 2rem;
+  padding: 1rem;
 }
 
 .book-cover {
   width: 100%;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.book-cover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
 }
 
 .book-actions {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
 .action-button {
-  width: 100%;
   padding: 1rem;
+  border-radius: 12px;
   border: none;
-  border-radius: 8px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .action-button.primary {
-  background-color: #3b82f6;
-  color: white;
+  box-shadow: 0 4px 14px rgba(0, 123, 255, 0.3);
 }
 
 .action-button.primary:hover {
-  background-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
 }
 
 .action-button.secondary {
-  background-color: #202020;
-  color: #e2e2e2;
-  border: 1px solid #404040;
+  border: 1px solid;
+  background-clip: padding-box;
 }
 
 .action-button.secondary:hover {
-  background-color: #101010;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
 .heart-icon {
@@ -135,25 +143,43 @@
   margin-right: 0.5rem;
 }
 
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 1.5rem;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  transform: translateX(-5px);
+}
+
+.back-icon {
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
 .book-info-section {
-  padding: 1rem 0;
+  padding: 1rem;
 }
 
 .book-title {
   font-size: 2.5rem;
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 800;
   margin-bottom: 2rem;
+  line-height: 1.2;
 }
 
 .book-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
   padding: 1.5rem;
-  background-color: #101010;
-  border-radius: 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
 }
 
 .meta-item {
@@ -164,7 +190,8 @@
 
 .label {
   font-size: 0.9rem;
-  color: #909090;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .value {
@@ -173,41 +200,40 @@
 }
 
 .category-tag {
-  display: inline-block;
-  padding: 0.3rem 1rem;
-  background-color: #202020;
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.1);
   border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .book-description {
   margin: 2rem 0;
-  line-height: 1.6;
+  line-height: 1.8;
 }
 
 .book-description h2 {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   margin-bottom: 1rem;
-  color: #ffffff;
+  font-weight: 700;
 }
 
 .price-section {
-  margin-top: 2rem;
   padding: 1.5rem;
-  background-color: #101010;
-  border-radius: 12px;
+  border-radius: 16px;
+  margin-top: 2rem;
 }
 
 .price-tag {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .original-price {
   font-size: 1.2rem;
   text-decoration: line-through;
-  color: #909090;
+  opacity: 0.7;
 }
 
 .discounted-price, .current-price {
@@ -216,57 +242,127 @@
   color: #4ade80;
 }
 
-.discount-percentage {
-  padding: 0.3rem 0.8rem;
-  background-color: #4ade80;
-  color: #101010;
+.discount-badge {
+  padding: 0.5rem 1rem;
+  background: #4ade80;
+  color: white;
   border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
 .not-found {
   text-align: center;
   padding: 4rem 2rem;
-  color: #e2e2e2;
 }
 
 .not-found h2 {
-  font-size: 1.8rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
 }
 
+.not-found-back {
+  margin-top: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .book-content {
+    grid-template-columns: 1fr 1.5fr;
+    gap: 2rem;
+  }
+
+  .book-title {
+    font-size: 2rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .book-detail-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
   .book-content {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .book-image-section {
-    position: static;
-    max-width: 300px;
+    max-width: 320px;
     margin: 0 auto;
+  }
+
+  .book-title {
+    font-size: 1.8rem;
+  }
+
+  .book-meta {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .book-detail-container {
+    padding: 1rem;
+  }
+
+  .action-button {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .book-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .price-tag {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }
 </style>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { featuredBooks } from '../../utils/customDatas.js';
+import { useStore } from 'vuex';
 
 export default {
   setup() {
     const route = useRoute();
+    const store = useStore();
     const book = ref(null);
+
+    const theme = computed(() => store.state.ui.theme);
+
+    const getThemeStyles = computed(() => {
+      const isDarkTheme = theme.value === 'dark';
+      return {
+        backgroundColor: isDarkTheme ? '#09090b' : '#FFFFFF',
+        textColor: isDarkTheme ? '#e2e2e2' : '#333333',
+        borderColor: isDarkTheme ? '#202020' : '#DDDDDD',
+        accentColor: '#007bff',
+        inputBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
+        buttonTextColor: '#FFFFFF',
+        labelColor: isDarkTheme ? '#909090' : '#777777',
+      };
+    });
 
     onMounted(() => {
       const bookId = parseInt(route.params.id);
-      book.value = featuredBooks.value.find((b) => b.id === bookId);
-      console.log(book.value);
+      const storedBooks = localStorage.getItem('books');
+      if (storedBooks) {
+        const books = JSON.parse(storedBooks);
+        book.value = books.find((b) => b.id === bookId);
+      }
     });
 
     return {
       book,
+      getThemeStyles,
     };
   },
 };

@@ -3,12 +3,16 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import Layout from "@/components/Layout.vue";
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
+import { useToast } from "vue-toastification";
+import { useStore } from "vuex";
+const toast = useToast();
 
 const currentStep = ref(1);
 const totalSteps = 4;
 
 const router = useRouter();
 const route = useRoute();
+const store = useStore();
 
 const bookForm = reactive({
   id: null,
@@ -162,7 +166,6 @@ const handleImageUpload = (event) => {
 const fetchExchangeRates = async () => {
   try {
     loading.value = true;
-    // Replace with your API key and actual API endpoint
     const response = await axios.get('https://api.exchangerate-api.com/v4/latest/TRY');
     exchangeRates.value = response.data.rates;
     loading.value = false;
@@ -203,9 +206,9 @@ const submitForm = () => {
     const bookIndex = booksInStorage.findIndex(book => book.id === bookForm.id);
     if (bookIndex !== -1) {
       booksInStorage[bookIndex] = { ...bookForm };
-    }
-    alert('Kitap başarıyla güncellendi!');
+      toast.success('Kitap başarıyla güncellendi!');
 
+    }
     localStorage.setItem('books', JSON.stringify(booksInStorage));
     localStorage.removeItem('bookFormState');
     router.push('/'); // Kitap listesine geri dön
@@ -298,6 +301,22 @@ const loadBookForEdit = async () => {
   }
 };
 
+const theme = computed(() => store.state.ui.theme);
+
+// Stil fonksiyonları
+const getThemeStyles = computed(() => {
+  const isDarkTheme = theme.value === 'dark';
+  return {
+    backgroundColor: isDarkTheme ? '#09090b' : '#FFFFFF',
+    textColor: isDarkTheme ? '#e2e2e2' : '#333333',
+    borderColor: isDarkTheme ? '#202020' : '#DDDDDD',
+    accentColor: '#007bff', // Mavi vurgu rengi, değişebilir
+    boxShadow: isDarkTheme ? '0 4px 12px rgba(255, 255, 255, 0.1)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
+    inputBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
+    selectBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
+  };
+});
+
 // Lifecycle hooks
 onMounted(() => {
   fetchExchangeRates();
@@ -308,13 +327,13 @@ onMounted(() => {
 
 <template>
   <Layout>
-    <div class="form-container">
+    <div class="form-container" :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor, boxShadow: getThemeStyles.boxShadow }">
       <h1>Kitap Düzenle</h1>
 
       <div class="form-content">
         <!-- Progress bar -->
         <div class="progress-bar">
-          <div class="progress-labels">
+          <div class="progress-labels" :style="{ color: getThemeStyles.textColor }">
             <span>Adım {{ currentStep }} / {{ totalSteps }}</span>
             <span>{{ Math.round((currentStep / totalSteps) * 100) }}% Tamamlandı</span>
           </div>
@@ -325,53 +344,58 @@ onMounted(() => {
 
         <!-- Step 1: Basic Information -->
         <div v-if="currentStep === 1" class="form-step">
-          <h2>Temel Bilgiler</h2>
+          <h2 :style="{ color: getThemeStyles.textColor }">Temel Bilgiler</h2>
 
           <div class="form-group">
-            <label for="title">Kitap Başlığı*</label>
+            <label for="title" :style="{ color: getThemeStyles.textColor }">Kitap Başlığı*</label>
             <input
                 id="title"
                 v-model="bookForm.title"
                 type="text"
                 :class="{ 'error': formErrors.title }"
+                :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
             />
             <p v-if="formErrors.title" class="error-message">{{ formErrors.title }}</p>
           </div>
 
           <div class="form-group">
-            <label for="author">Yazar*</label>
+            <label for="author" :style="{ color: getThemeStyles.textColor }">Yazar*</label>
             <input
                 id="author"
                 v-model="bookForm.author"
                 type="text"
                 :class="{ 'error': formErrors.author }"
+                :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
             />
             <p v-if="formErrors.author" class="error-message">{{ formErrors.author }}</p>
           </div>
 
           <div class="form-group">
-            <label for="publisher">Yayınevi</label>
+            <label for="publisher" :style="{ color: getThemeStyles.textColor }">Yayınevi</label>
             <input
                 id="publisher"
                 v-model="bookForm.publisher"
                 type="text"
+                :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
             />
           </div>
 
           <div class="form-group">
-            <label for="publishDate">Yayın Tarihi</label>
+            <label for="publishDate" :style="{ color: getThemeStyles.textColor }">Yayın Tarihi</label>
             <input
                 id="publishDate"
                 v-model="bookForm.publishDate"
                 type="date"
+                :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
             />
           </div>
 
           <div class="form-group">
-            <label for="language">Dil</label>
+            <label for="language" :style="{ color: getThemeStyles.textColor }">Dil</label>
             <select
                 id="language"
                 v-model="bookForm.language"
+                :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
             >
               <option value="tr">Türkçe</option>
               <option value="en">İngilizce</option>
@@ -382,11 +406,12 @@ onMounted(() => {
           </div>
 
           <div class="form-group">
-            <label for="bookType">Kitap Türü*</label>
+            <label for="bookType" :style="{ color: getThemeStyles.textColor }">Kitap Türü*</label>
             <select
                 id="bookType"
                 v-model="bookForm.bookType"
                 :class="{ 'error': formErrors.bookType }"
+                :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
             >
               <option value="fiction">Kurgu</option>
               <option value="nonFiction">Kurgu Olmayan</option>
@@ -398,27 +423,29 @@ onMounted(() => {
 
         <!-- Step 2: Additional Information (Dynamic based on book type) -->
         <div v-if="currentStep === 2" class="form-step">
-          <h2>Detaylı Bilgiler</h2>
+          <h2 :style="{ color: getThemeStyles.textColor }">Detaylı Bilgiler</h2>
 
           <div class="form-group">
-            <label for="isbn">ISBN*</label>
+            <label for="isbn" :style="{ color: getThemeStyles.textColor }">ISBN*</label>
             <input
                 id="isbn"
                 v-model="bookForm.isbn"
                 type="text"
                 :class="{ 'error': formErrors.isbn }"
+                :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
             />
             <p v-if="formErrors.isbn" class="error-message">{{ formErrors.isbn }}</p>
           </div>
 
           <div class="form-group">
-            <label for="pageCount">Sayfa Sayısı*</label>
+            <label for="pageCount" :style="{ color: getThemeStyles.textColor }">Sayfa Sayısı*</label>
             <input
                 id="pageCount"
                 v-model="bookForm.pageCount"
                 type="number"
                 min="1"
                 :class="{ 'error': formErrors.pageCount }"
+                :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
             />
             <p v-if="formErrors.pageCount" class="error-message">{{ formErrors.pageCount }}</p>
           </div>
@@ -427,31 +454,34 @@ onMounted(() => {
           <!-- Fiction Fields -->
           <template v-if="bookForm.bookType === 'fiction'">
             <div class="form-group">
-              <label for="series">Seri</label>
+              <label for="series" :style="{ color: getThemeStyles.textColor }">Seri</label>
               <input
                   id="series"
                   v-model="bookForm.fiction.series"
                   type="text"
+                  :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
               />
             </div>
 
             <div class="form-group">
-              <label for="seriesNumber">Seri Numarası</label>
+              <label for="seriesNumber" :style="{ color: getThemeStyles.textColor }">Seri Numarası</label>
               <input
                   id="seriesNumber"
                   v-model="bookForm.fiction.seriesNumber"
                   type="number"
                   min="1"
+                  :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
               />
             </div>
 
             <div class="form-group">
-              <label>Karakterler</label>
+              <label :style="{ color: getThemeStyles.textColor }">Karakterler</label>
               <div class="character-tags">
                 <div
                     v-for="(character, index) in bookForm.fiction.characters"
                     :key="index"
                     class="character-tag"
+                    :style="{ backgroundColor: getThemeStyles.borderColor, color: getThemeStyles.textColor }"
                 >
                   <span>{{ character }}</span>
                   <button
@@ -468,6 +498,7 @@ onMounted(() => {
                     v-model="newCharacter"
                     type="text"
                     placeholder="Karakter adı"
+                    :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
                 />
                 <button
                     @click="if(newCharacter) { bookForm.fiction.characters.push(newCharacter); newCharacter = ''; }"
@@ -482,19 +513,21 @@ onMounted(() => {
           <!-- Non-Fiction Fields -->
           <template v-if="bookForm.bookType === 'nonFiction'">
             <div class="form-group">
-              <label for="subjectArea">Konu Alanı</label>
+              <label for="subjectArea" :style="{ color: getThemeStyles.textColor }">Konu Alanı</label>
               <input
                   id="subjectArea"
                   v-model="bookForm.nonFiction.subjectArea"
                   type="text"
+                  :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
               />
             </div>
 
             <div class="form-group">
-              <label for="academicLevel">Akademik Seviye</label>
+              <label for="academicLevel" :style="{ color: getThemeStyles.textColor }">Akademik Seviye</label>
               <select
                   id="academicLevel"
                   v-model="bookForm.nonFiction.academicLevel"
+                  :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
               >
                 <option value="">Seçiniz</option>
                 <option value="elementary">İlkokul</option>
@@ -510,10 +543,11 @@ onMounted(() => {
           <!-- Children's Book Fields -->
           <template v-if="bookForm.bookType === 'children'">
             <div class="form-group">
-              <label for="ageRange">Yaş Aralığı</label>
+              <label for="ageRange" :style="{ color: getThemeStyles.textColor }">Yaş Aralığı</label>
               <select
                   id="ageRange"
                   v-model="bookForm.children.ageRange"
+                  :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
               >
                 <option value="">Seçiniz</option>
                 <option value="0-2">0-2 yaş</option>
@@ -525,7 +559,7 @@ onMounted(() => {
             </div>
 
             <div class="form-group">
-              <label>
+              <label :style="{ color: getThemeStyles.textColor }">
                 <input
                     type="checkbox"
                     v-model="bookForm.children.illustrations"
@@ -536,21 +570,22 @@ onMounted(() => {
             </div>
 
             <div class="form-group">
-              <label for="educationalValue">Eğitsel Değer</label>
+              <label for="educationalValue" :style="{ color: getThemeStyles.textColor }">Eğitsel Değer</label>
               <textarea
                   id="educationalValue"
                   v-model="bookForm.children.educationalValue"
                   rows="3"
+                  :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
               ></textarea>
             </div>
           </template>
         </div>
         <!-- Step 3: Price and Summary -->
         <div v-if="currentStep === 3" class="form-step">
-          <h2>Fiyat ve Özet</h2>
+          <h2 :style="{ color: getThemeStyles.textColor }">Fiyat ve Özet</h2>
 
           <div class="form-group">
-            <label>Fiyat ve Para Birimi*</label>
+            <label :style="{ color: getThemeStyles.textColor }">Fiyat ve Para Birimi*</label>
             <div class="price-input-group">
               <input
                   v-model="bookForm.price"
@@ -558,39 +593,40 @@ onMounted(() => {
                   min="0"
                   step="0.01"
                   :class="{ 'error': formErrors.price }"
+                  :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
               />
               <select
                   v-model="bookForm.currency"
                   :class="{ 'error': formErrors.currency }"
+                  :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
               >
                 <option v-for="currency in currencies" :key="currency" :value="currency">
                   {{ currency }}
                 </option>
               </select>
             </div>
-            <p v-if="formErrors.price || formErrors.currency" class="error-message">
-              {{ formErrors.price || formErrors.currency }}
-            </p>
+            <p v-if="formErrors.price || formErrors.currency" class="error-message">{{ formErrors.price || formErrors.currency }}</p>
           </div>
 
           <!-- Exchange rate information -->
-          <div v-if="bookForm.price && Object.keys(exchangeRates).length > 0" class="exchange-rates">
-            <h3>Diğer Para Birimlerinde:</h3>
-            <div v-if="loading" class="loading">Döviz kurları yükleniyor...</div>
+          <div v-if="bookForm.price && Object.keys(exchangeRates).length > 0" class="exchange-rates" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
+            <h3 :style="{ color: getThemeStyles.textColor }">Diğer Para Birimlerinde:</h3>
+            <div v-if="loading" class="loading" :style="{ color: getThemeStyles.textColor }">Döviz kurları yükleniyor...</div>
             <ul v-else>
-              <li v-for="currency in currencies" :key="currency">
+              <li v-for="currency in currencies" :key="currency" :style="{ color: getThemeStyles.textColor }">
                 <span>{{ currency }}:</span> {{ convertedPrices[currency] }}
               </li>
             </ul>
           </div>
 
           <div class="form-group">
-            <label for="summary">Kitap Özeti*</label>
+            <label for="summary" :style="{ color: getThemeStyles.textColor }">Kitap Özeti*</label>
             <textarea
                 id="summary"
                 v-model="summaryContent"
                 :class="{ 'error': formErrors.summary }"
                 rows="6"
+                :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
             ></textarea>
             <p v-if="formErrors.summary" class="error-message">{{ formErrors.summary }}</p>
           </div>
@@ -598,33 +634,34 @@ onMounted(() => {
 
         <!-- Step 4: Cover Image -->
         <div v-if="currentStep === 4" class="form-step">
-          <h2>Kapak Görseli</h2>
+          <h2 :style="{ color: getThemeStyles.textColor }">Kapak Görseli</h2>
 
           <div class="form-group">
-            <label for="coverImage">Kapak Görseli Yükle</label>
+            <label for="coverImage" :style="{ color: getThemeStyles.textColor }">Kapak Görseli Yükle</label>
             <input
                 id="coverImage"
                 type="file"
                 accept="image/*"
                 @change="handleImageUpload"
+                :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }"
             />
-            <p class="note">PNG, JPG veya GIF, max 5MB</p>
+            <p class="note" :style="{ color: getThemeStyles.textColor }">PNG, JPG veya GIF, max 5MB</p>
           </div>
 
           <!-- Image preview -->
           <div v-if="imagePreview" class="image-preview">
-            <h3>Görsel Önizleme:</h3>
-            <div class="preview-container">
+            <h3 :style="{ color: getThemeStyles.textColor }">Görsel Önizleme:</h3>
+            <div class="preview-container" :style="{ borderColor: getThemeStyles.borderColor }">
               <img :src="imagePreview" alt="Kapak önizleme" />
             </div>
           </div>
 
-          <div v-else class="no-image">
+          <div v-else class="no-image" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
             <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
-            <p>Henüz görsel yüklenmedi</p>
-            <p class="note">Görsel yüklemek için yukarıdaki butonu kullanın</p>
+            <p :style="{ color: getThemeStyles.textColor }">Henüz görsel yüklenmedi</p>
+            <p class="note" :style="{ color: getThemeStyles.textColor }">Görsel yüklemek için yukarıdaki butonu kullanın</p>
           </div>
         </div>
 
@@ -634,6 +671,7 @@ onMounted(() => {
               v-if="currentStep > 1"
               @click="prevStep"
               class="nav-button prev-button"
+              :style="{ backgroundColor: getThemeStyles.borderColor, color: getThemeStyles.textColor }"
           >
             Geri
           </button>
@@ -651,6 +689,7 @@ onMounted(() => {
                 v-if="currentStep < totalSteps"
                 @click="nextStep"
                 class="nav-button next-button"
+                :style="{ backgroundColor: getThemeStyles.accentColor, color: '#e2e2e2' }"
             >
               Sonraki
             </button>
@@ -659,6 +698,7 @@ onMounted(() => {
                 v-else
                 @click="submitForm"
                 class="nav-button submit-button"
+                :style="{ backgroundColor: getThemeStyles.accentColor, color: '#e2e2e2' }"
             >
               Güncelle
             </button>
@@ -670,12 +710,31 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* Genel Renkler ve Temalar */
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  --light-color: #e2e2e2;
+  --dark-color: #101010;
+  --background-color: #09090b;
+  --text-color: #e2e2e2;
+  --border-color: #202020;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
 .form-container {
   max-width: 1140px;
+  width: 100%;
   margin: 0 auto;
   padding: 20px;
-  background-color: #09090b;
-  color: #e2e2e2;
   border-radius: 8px;
 }
 
@@ -683,21 +742,18 @@ h1 {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 20px;
-  color: #e2e2e2;
 }
 
 h2 {
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 16px;
-  color: #e2e2e2;
 }
 
 h3 {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 12px;
-  color: #e2e2e2;
 }
 
 /* Progress Bar */
@@ -710,7 +766,6 @@ h3 {
   justify-content: space-between;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #e2e2e2;
 }
 
 .progress-track {
@@ -738,7 +793,6 @@ label {
   font-size: 14px;
   font-weight: bold;
   margin-bottom: 8px;
-  color: #e2e2e2;
 }
 
 input,
@@ -748,9 +802,9 @@ textarea {
   padding: 8px;
   border: 1px solid #202020;
   border-radius: 4px;
-  background-color: #101010;
-  color: #e2e2e2;
   font-size: 14px;
+  background-color: var(--inputBackgroundColor);
+  color: var(--textColor); /* Metin rengi için tema değişkeni */
 }
 
 input.error,
@@ -767,8 +821,8 @@ textarea.error {
 
 .note {
   font-size: 12px;
-  color: #a0a0a0;
   margin-top: 4px;
+  color: var(--textColor); /* Not rengi için tema değişkeni */
 }
 
 /* Karakter Etiketleri */
@@ -782,7 +836,6 @@ textarea.error {
 .character-tag {
   display: flex;
   align-items: center;
-  background-color: #202020;
   padding: 4px 8px;
   border-radius: 12px;
   font-size: 14px;
@@ -810,7 +863,6 @@ textarea.error {
 
 /* Döviz Kurları */
 .exchange-rates {
-  background-color: #101010;
   padding: 12px;
   border-radius: 4px;
   margin-bottom: 16px;
@@ -829,7 +881,7 @@ textarea.error {
 
 .loading {
   font-size: 14px;
-  color: #a0a0a0;
+  color: var(--textColor); /* Yükleme yazısı rengi */
 }
 
 /* Görsel Yükleme */
@@ -856,10 +908,8 @@ textarea.error {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background-color: #101010;
   border: 2px dashed #202020;
   border-radius: 4px;
-  color: #a0a0a0;
 }
 
 .no-image .icon {
@@ -891,8 +941,7 @@ textarea.error {
 }
 
 .prev-button {
-  background-color: #202020;
-  color: #e2e2e2;
+  color: var(--textColor);
 }
 
 .prev-button:hover {
@@ -909,7 +958,6 @@ textarea.error {
 }
 
 .next-button {
-  background-color: #4caf50;
   color: #e2e2e2;
 }
 
@@ -918,7 +966,6 @@ textarea.error {
 }
 
 .submit-button {
-  background-color: #2196f3;
   color: #e2e2e2;
 }
 

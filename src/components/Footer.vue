@@ -20,6 +20,7 @@ const store = useStore();
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
   max-width: 1150px;
   margin: auto;
   padding: 16px 24px;

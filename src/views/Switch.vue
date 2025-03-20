@@ -22,6 +22,12 @@
 import { mapState, mapActions } from "vuex";
 
 export default {
+  props: {
+    selectedAccount: {
+      type: Object,
+      required: true
+    }
+  },
   data() {
     return {
       password: "",
@@ -29,10 +35,13 @@ export default {
     };
   },
   computed: {
-    ...mapState(["selectedAccount"])
+    ...mapState({
+      user: (state) => state.user.user  // Mapping Vuex user state
+    })
   },
   methods: {
-    ...mapActions(["switchAccount"]),
+    ...mapActions(["user/switchAccount"]),
+
     verifyAndSwitch() {
       // Şifre doğrulaması
       const users = JSON.parse(localStorage.getItem("users")) || [];

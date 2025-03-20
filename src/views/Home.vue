@@ -6,15 +6,23 @@ import { debounce } from 'lodash';
 import router from "@/router/index.js";
 
 const store = useStore();
+
+// Tema ile ilgili değişkenler
+const theme = computed(() => store.state.ui.theme);
+
+// Karusel ile ilgili değişkenler
 const currentIndex = ref(0);
 const slideWidth = ref(320);
-const viewMode = ref('grid');
+
+// Arama ve filtreleme ile ilgili değişkenler
+const viewMode = computed(() => store.state.ui.viewMode);
 const searchQuery = ref('');
 const isLoading = computed(() => store.state.books.loading);
 const page = ref(1);
 const totalPages = ref(10);
 const currentUser = computed(() => store.state.user);
 
+// Para birimi ile ilgili değişkenler
 const selectedCurrency = ref('TRY');
 const currencyRates = ref({
   TRY: 1,
@@ -23,8 +31,7 @@ const currencyRates = ref({
   GBP: 0.026
 });
 
-const carouselRef = ref(null);
-const sortBy = ref('releaseDate');
+// Filtreler
 const priceMin = ref(0);
 const priceMax = ref(1000);
 const yearMin = ref(1900);
@@ -40,6 +47,8 @@ const filters = ref({
   pageRange: [0, 1000],
   onlyFree: false
 });
+
+// Kategoriler ve diller
 const categories = ref([
   'Roman', 'Bilim Kurgu', 'Tarih', 'Felsefe', 'Biyografi',
   'Psikoloji', 'Çocuk Kitapları', 'Bilim', 'İş', 'Teknoloji'
@@ -49,12 +58,17 @@ const languages = ref([
   'Türkçe', 'İngilizce', 'Fransızca', 'Almanca', 'İspanyolca'
 ]);
 
+// Favoriler
 const favorites = ref([]);
 
+// Kitaplar
 const allBooks = computed(() => store.state.books.books || []);
 const featuredBooks = computed(() => store.state.books.books ? store.state.books.books.slice(0, 6) : []);
-console.log(featuredBooks.value)
 
+// Ref'ler
+const carouselRef = ref(null);
+
+// Yükleme fonksiyonu
 const loadMoreBooks = async () => {
   if (isLoading.value || page.value >= totalPages.value) return;
 
@@ -76,6 +90,7 @@ const loadMoreBooks = async () => {
   }
 };
 
+// Bileşen monte edildiğinde
 onMounted(() => {
   // Fetch books from localStorage on mount
   store.dispatch('books/fetchBooks');
@@ -101,11 +116,27 @@ onMounted(() => {
   startAutoSlide();
 });
 
+// Bileşen kaldırıldığında
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
   stopAutoSlide();
 });
 
+// Stil fonksiyonları
+const getThemeStyles = computed(() => {
+  const isDarkTheme = theme.value === 'dark';
+  return {
+    backgroundColor: isDarkTheme ? '#09090b' : '#FFFFFF',
+    textColor: isDarkTheme ? '#e2e2e2' : '#333333',
+    borderColor: isDarkTheme ? '#202020' : '#DDDDDD',
+    accentColor: '#007bff', // Mavi vurgu rengi, değişebilir
+    boxShadow: isDarkTheme ? '0 4px 12px rgba(255, 255, 255, 0.1)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
+    inputBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
+    selectBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
+  };
+});
+
+// Karusel ile ilgili fonksiyonlar
 const handleResize = debounce(() => {
   if (carouselRef.value) {
     slideWidth.value = carouselRef.value.offsetWidth * 0.8;
@@ -139,6 +170,7 @@ const goToSlide = (index) => {
   currentIndex.value = index;
 };
 
+// Arama fonksiyonu
 const debouncedSearch = debounce(() => {
   console.log("Arama yapılıyor:", searchQuery.value);
 }, 200);
@@ -147,6 +179,7 @@ watch(searchQuery, () => {
   debouncedSearch();
 });
 
+// Filtreleme fonksiyonları
 const clearFilters = () => {
   filters.value = {
     category: '',
@@ -159,6 +192,7 @@ const clearFilters = () => {
   searchQuery.value = '';
 };
 
+// Favori fonksiyonları
 const toggleFavorite = (book) => {
   const index = favorites.value.findIndex(id => id === book.id);
   if (index === -1) {
@@ -172,11 +206,13 @@ const isFavorite = (id) => {
   return favorites.value.includes(id);
 };
 
+// Kitap detaylarına gitme fonksiyonu
 const openBookDetails = (book) => {
   store.dispatch('books/selectBook', book.id);
-  router.push('/book/'+book.id);
+  router.push('/book/' + book.id);
 };
 
+// Fiyat formatlama fonksiyonu
 const formatPrice = (price) => {
   if (price === 0) return "Ücretsiz";
 
@@ -192,6 +228,7 @@ const formatPrice = (price) => {
   return `${currencySymbols[selectedCurrency.value]}${convertedPrice.toFixed(2)}`;
 };
 
+// Kitap filtreleme fonksiyonu
 const filteredBooks = computed(() => {
   let result = allBooks.value.filter(book => {
     if (searchQuery.value && !book.title.toLowerCase().includes(searchQuery.value.toLowerCase()) &&
@@ -227,32 +264,25 @@ const filteredBooks = computed(() => {
     return true;
   });
 
-  switch (sortBy.value) {
-    case 'releaseDate':
-      result.sort((a, b) => b.year - a.year);
-      break;
-    case 'priceAsc':
-      result.sort((a, b) => (a.discountedPrice || a.price) - (b.discountedPrice || b.price));
-      break;
-    case 'priceDesc':
-      result.sort((a, b) => (b.discountedPrice || b.price) - (a.discountedPrice || a.price));
-      break;
-    case 'name':
-      result.sort((a, b) => a.title.localeCompare(b.title));
-      break;
-  }
-
   return result;
 });
 
-// Compute special book collections from the store getters
+// İndirimli ve ücretsiz kitaplar
 const freeBooks = computed(() => store.getters['books/freeBooks']);
 const discountedBooks = computed(() => store.getters['books/discountedBooks']);
+
+const toggleTheme = () => {
+  store.dispatch('ui/toggleTheme');
+};
+
+const setViewMode = (mode) => {
+  store.commit('ui/SET_VIEW_MODE', mode);
+};
 </script>
 
 <template>
   <Layout>
-    <div class="main-container">
+    <div class="main-container" :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor, boxShadow: getThemeStyles.boxShadow }">
       <header class="welcome-section">
         <h1 class="greeting">Merhaba, {{ currentUser.valueOf().user.username }}</h1>
         <h2 class="subheading">Bu gün hangi kitaplara göz gezdirmek istersin?</h2>
@@ -270,9 +300,10 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
                    class="carousel-item" :class="{ 'active': index === currentIndex }">
                 <div class="book-card featured">
                   <div class="book-image-container">
-                    <img :src="book.image" :alt="book.title" class="book-image" />
+                    <img :src="book.coverImage" style="width: 300px; height: 250px;" :alt="book.title" class="book-image" />
+
                     <div class="book-overlay">
-                      <button class="quick-view-btn" @click="openBookDetails(book)">Hızlı Bakış</button>
+                      <button class="quick-view-btn" @click="openBookDetails(book)" :style="{ backgroundColor: getThemeStyles.accentColor, color: 'white' }">Hızlı Bakış</button>
                       <button class="favorite-btn" @click="toggleFavorite(book)">
                         <span class="favorite-icon" :class="{ 'favorited': isFavorite(book.id) }">
                           ♥
@@ -301,7 +332,7 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
         </div>
       </section>
 
-      <section class="controls-section">
+      <section class="controls-section" :style="{ backgroundColor: getThemeStyles.borderColor, boxShadow: getThemeStyles.boxShadow }">
         <div class="filter-controls">
           <div class="search-box">
             <input
@@ -309,20 +340,21 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
                 v-model="searchQuery"
                 placeholder="Kitap veya yazar ara..."
                 class="search-input"
+                :style="{ backgroundColor: 'transparent', color: getThemeStyles.textColor }"
             />
             <span class="search-icon">🔍</span>
           </div>
 
           <div class="filters">
             <div class="filter-group">
-              <select v-model="filters.category" class="filter-select">
+              <select v-model="filters.category" class="filter-select" :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
                 <option value="">Tüm Kategoriler</option>
                 <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
               </select>
             </div>
 
             <div class="filter-group">
-              <select v-model="filters.language" class="filter-select">
+              <select v-model="filters.language" class="filter-select" :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
                 <option value="">Tüm Diller</option>
                 <option v-for="language in languages" :key="language" :value="language">{{ language }}</option>
               </select>
@@ -355,7 +387,7 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
             <div class="filter-group">
               <label class="checkbox-filter">
                 <input type="checkbox" v-model="filters.onlyFree" />
-                <span>Sadece Ücretsiz</span>
+                <span :style="{color: getThemeStyles.textColor}">Sadece Ücretsiz</span>
               </label>
             </div>
 
@@ -365,7 +397,7 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
 
         <div class="view-controls">
           <div class="sort-controls">
-            <select v-model="sortBy" class="sort-select">
+            <select v-model="sortBy" class="sort-select" :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
               <option value="releaseDate">Yayın Tarihi</option>
               <option value="priceAsc">Fiyat (Artan)</option>
               <option value="priceDesc">Fiyat (Azalan)</option>
@@ -374,7 +406,7 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
           </div>
 
           <div class="currency-selector">
-            <select v-model="selectedCurrency" class="currency-select">
+            <select v-model="selectedCurrency" class="currency-select" :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
               <option value="TRY">TRY (₺)</option>
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>
@@ -382,12 +414,12 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
             </select>
           </div>
 
-          <div class="view-mode-toggle">
-            <button class="view-btn" :class="{ 'active': viewMode === 'grid' }" @click="viewMode = 'grid'">
-              <span class="grid-icon">▦</span>
+          <div style="margin-left: 15px;" class="view-mode-toggle">
+            <button class="view-btn" :class="{ 'active': viewMode === 'grid' }" @click="setViewMode('grid')" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
+              <span :style="{color: getThemeStyles.textColor}" class="grid-icon">▦</span>
             </button>
-            <button class="view-btn" :class="{ 'active': viewMode === 'list' }" @click="viewMode = 'list'">
-              <span class="list-icon">≡</span>
+            <button class="view-btn" :class="{ 'active': viewMode === 'list' }" @click="setViewMode('list')" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
+              <span :style="{color: getThemeStyles.textColor}" class="list-icon">≡</span>
             </button>
           </div>
         </div>
@@ -405,11 +437,12 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
         <div v-else class="book-display" :class="viewMode">
           <div v-for="book in filteredBooks" :key="`book-${book.id}`"
                class="book-item" :class="{ 'list-item': viewMode === 'list' }">
-            <div class="book-card" :class="{ 'list-card': viewMode === 'list' }">
+            <div class="book-card" :class="{ 'list-card': viewMode === 'list' }" :style="{ borderColor: getThemeStyles.borderColor, boxShadow: getThemeStyles.boxShadow, backgroundColor: getThemeStyles.inputBackgroundColor }">
               <div class="book-image-container">
-                <img :src="book.image" :alt="book.title" class="book-image" />
+                <img :src="book.coverImage" style="width: 100%; height: 250px;" :alt="book.title" class="book-image" />
+
                 <div class="book-overlay">
-                  <button class="quick-view-btn" @click="openBookDetails(book)">Hızlı Bakış</button>
+                  <button class="quick-view-btn" @click="openBookDetails(book)" :style="{ backgroundColor: getThemeStyles.accentColor, color: 'white' }">Hızlı Bakış</button>
                   <button class="favorite-btn" @click="toggleFavorite(book)">
                     <span class="favorite-icon" :class="{ 'favorited': isFavorite(book.id) }">
                       ♥
@@ -417,7 +450,7 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
                   </button>
                 </div>
               </div>
-              <div class="book-info">
+              <div class="book-info" :style="{ color: getThemeStyles.textColor }">
                 <h4 class="book-title">{{ book.title }}</h4>
                 <p class="book-author">{{ book.author }}</p>
                 <p v-if="viewMode === 'list'" class="book-description">{{ book.description }}</p>
@@ -449,17 +482,17 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
         <h3 class="section-title">İndirimli Kitaplar</h3>
         <div class="book-display grid">
           <div v-for="book in discountedBooks.slice(0, 4)" :key="`discount-${book.id}`" class="book-item">
-            <div class="book-card">
+            <div class="book-card" :style="{ borderColor: getThemeStyles.borderColor, boxShadow: getThemeStyles.boxShadow, backgroundColor: getThemeStyles.inputBackgroundColor }">
               <div class="book-image-container">
-                <img :src="book.image" :alt="book.title" class="book-image" />
+                <img :src="book.coverImage" style="width: 100%; height: 250px;" :alt="book.title" class="book-image" />
                 <div class="book-overlay">
-                  <button class="quick-view-btn" @click="openBookDetails(book)">Hızlı Bakış</button>
+                  <button class="quick-view-btn" @click="openBookDetails(book)" :style="{ backgroundColor: getThemeStyles.accentColor, color: 'white' }">Hızlı Bakış</button>
                   <button class="favorite-btn" @click="toggleFavorite(book)">
                     <span class="favorite-icon" :class="{ 'favorited': isFavorite(book.id) }">♥</span>
                   </button>
                 </div>
               </div>
-              <div class="book-info">
+              <div class="book-info" :style="{ color: getThemeStyles.textColor }">
                 <h4 class="book-title">{{ book.title }}</h4>
                 <p class="book-author">{{ book.author }}</p>
                 <div class="book-price">
@@ -477,17 +510,18 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
         <h3 class="section-title">Ücretsiz Kitaplar</h3>
         <div class="book-display grid">
           <div v-for="book in freeBooks.slice(0, 4)" :key="`free-${book.id}`" class="book-item">
-            <div class="book-card">
+            <div class="book-card" :style="{ borderColor: getThemeStyles.borderColor, boxShadow: getThemeStyles.boxShadow, backgroundColor: getThemeStyles.inputBackgroundColor }">
               <div class="book-image-container">
-                <img :src="book.image" :alt="book.title" class="book-image" />
+                <img :src="book.coverImage" style="width: 100%; height: 250px;" :alt="book.title" class="book-image" />
+
                 <div class="book-overlay">
-                  <button class="quick-view-btn" @click="openBookDetails(book)">Hızlı Bakış</button>
+                  <button class="quick-view-btn" @click="openBookDetails(book)" :style="{ backgroundColor: getThemeStyles.accentColor, color: 'white' }">Hızlı Bakış</button>
                   <button class="favorite-btn" @click="toggleFavorite(book)">
                     <span class="favorite-icon" :class="{ 'favorited': isFavorite(book.id) }">♥</span>
                   </button>
                 </div>
               </div>
-              <div class="book-info">
+              <div class="book-info" :style="{ color: getThemeStyles.textColor }">
                 <h4 class="book-title">{{ book.title }}</h4>
                 <p class="book-author">{{ book.author }}</p>
                 <div class="book-price">
@@ -502,9 +536,27 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
   </Layout>
 </template>
 
-
-
 <style scoped>
+/* Genel Renkler ve Temalar */
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  --light-color: #e2e2e2;
+  --dark-color: #101010;
+  --background-color: #09090b;
+  --text-color: #e2e2e2;
+  --border-color: #202020;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
 /* Ana container */
 .main-container {
   display: flex;
@@ -513,10 +565,9 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
   margin: 40px auto;
   width: 90%;
   max-width: 1200px;
-  background: #09090b;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease; /* Tema geçişi için */
 }
 
 /* Welcome Section */
@@ -532,14 +583,12 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
   font-weight: 400;
   font-size: 20px;
   margin-bottom: 5px;
-  color: #e2e2e2;
 }
 
 .subheading {
   font-weight: 400;
   font-size: 35px;
   margin-top: 0;
-  color: #e2e2e2;
 }
 
 /* Section başlıkları */
@@ -549,7 +598,7 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
   margin-bottom: 20px;
   border-bottom: 2px solid #202020;
   padding-bottom: 10px;
-  color: #e2e2e2;
+  color: var(--primary-color); /* tema uyumlu */
 }
 
 /* Kitap Karüseli */
@@ -586,133 +635,6 @@ const discountedBooks = computed(() => store.getters['books/discountedBooks']);
 
 .carousel-item.active {
   transform: scale(1);
-}
-
-/* Genel Renkler ve Temalar */
-:root {
-  --primary-color: #007bff;
-  --secondary-color: #6c757d;
-  --success-color: #28a745;
-  --danger-color: #dc3545;
-  --warning-color: #ffc107;
-  --info-color: #17a2b8;
-  --light-color: #e2e2e2;
-  --dark-color: #101010;
-  --background-color: #09090b;
-  --text-color: #e2e2e2;
-  --border-color: #202020;
-}
-
-body {
-  background-color: var(--background-color);
-  color: var(--text-color);
-}
-
-.section-title {
-  color: var(--primary-color);
-  border-bottom: 2px solid var(--primary-color);
-}
-
-.book-card {
-  background: #202020;
-  border: 1px solid var(--border-color);
-}
-
-.book-card:hover {
-  border-color: var(--primary-color);
-}
-
-.book-overlay {
-  background: rgba(0, 123, 255, 0.8);
-}
-
-.quick-view-btn {
-  background: #fff;
-  color: var(--primary-color);
-}
-
-.quick-view-btn:hover {
-  background: var(--primary-color);
-  color: #fff;
-}
-
-.favorite-icon {
-  color: #fff;
-}
-
-.favorite-icon.favorited {
-  color: #ff4d4d;
-}
-
-.favorite-icon:hover {
-  color: #ff4d4d;
-}
-
-.clear-filters-btn {
-  background: var(--danger-color);
-  color: #fff;
-}
-
-.clear-filters-btn:hover {
-  background: #c82333;
-}
-
-.view-btn.active {
-  background: var(--primary-color);
-  color: #fff;
-}
-
-/* Responsive Tasarım */
-@media (max-width: 768px) {
-  .main-container {
-    width: 95%;
-    margin: 20px auto;
-  }
-
-  .carousel-item {
-    min-width: 250px;
-  }
-
-  .filters {
-    flex-direction: column;
-  }
-
-  .filter-group {
-    flex: 1 1 100%;
-  }
-
-  .view-controls {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .book-display.grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
-
-  .book-card.list-card {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .book-card.list-card .book-image-container {
-    width: 100%;
-    height: 200px;
-  }
-
-  .book-card.list-card .book-info {
-    padding: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .carousel-item {
-    min-width: 200px;
-  }
-
-  .book-display.grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* Carousel navigation butonları */
@@ -884,7 +806,6 @@ body {
 .book-card {
   border-radius: 8px;
   overflow: hidden;
-  background: #202020;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   height: 100%;
@@ -982,11 +903,9 @@ body {
 
 /* Filtreleme ve Kontrol Paneli */
 .controls-section {
-  background: #202020;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  margin-bottom: 40px;
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease; /* Tema geçişi için */
 }
 
 .filter-controls {
@@ -998,10 +917,10 @@ body {
 .search-box {
   display: flex;
   align-items: center;
-  background: #101010;
   border-radius: 25px;
   padding: 10px 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
 }
 
 .search-input {
@@ -1010,8 +929,8 @@ body {
   outline: none;
   font-size: 16px;
   padding: 5px;
-  background: transparent;
   color: #e2e2e2;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .search-icon {
@@ -1036,10 +955,8 @@ body {
   border-radius: 8px;
   border: 1px solid #202020;
   font-size: 14px;
-  background: #101010;
-  color: #e2e2e2;
   outline: none;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 .filter-select:focus {
@@ -1105,10 +1022,8 @@ body {
   border-radius: 8px;
   border: 1px solid #202020;
   font-size: 14px;
-  background: #101010;
-  color: #e2e2e2;
   outline: none;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 .sort-select:focus {
@@ -1124,10 +1039,8 @@ body {
   border-radius: 8px;
   border: 1px solid #202020;
   font-size: 14px;
-  background: #101010;
-  color: #e2e2e2;
   outline: none;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 .currency-select:focus {
@@ -1140,12 +1053,11 @@ body {
 }
 
 .view-btn {
-  background: #101010;
   border: 1px solid #202020;
   padding: 10px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .view-btn.active {
@@ -1158,5 +1070,58 @@ body {
 .view-btn .list-icon {
   font-size: 18px;
   color: #e2e2e2;
+}
+
+/* Responsive Tasarım */
+@media (max-width: 768px) {
+  .main-container {
+    width: 95%;
+    margin: 20px auto;
+  }
+
+  .carousel-item {
+    min-width: 250px;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .filter-group {
+    flex: 1 1 100%;
+  }
+
+  .view-controls {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .book-display.grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .book-card.list-card {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .book-card.list-card .book-image-container {
+    width: 100%;
+    height: 200px;
+  }
+
+  .book-card.list-card .book-info {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-item {
+    min-width: 200px;
+  }
+
+  .book-display.grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
