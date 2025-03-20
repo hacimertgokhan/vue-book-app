@@ -170,7 +170,7 @@ const fetchExchangeRates = async () => {
     exchangeRates.value = response.data.rates;
     loading.value = false;
   } catch (error) {
-    console.error('Error fetching exchange rates:', error);
+    console.error('Error fetching currency rates:', error);
     loading.value = false;
   }
 };

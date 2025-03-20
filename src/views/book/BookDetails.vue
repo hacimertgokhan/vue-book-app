@@ -49,13 +49,44 @@
               <span class="original-price">{{ book.price }}₺</span>
               <span class="discounted-price">{{ book.discountedPrice }}₺</span>
               <span class="discount-badge">
-              %{{ Math.round((1 - book.discountedPrice/book.price) * 100) }} İndirim
-            </span>
+                %{{ Math.round((1 - book.discountedPrice/book.price) * 100) }} İndirim
+              </span>
             </div>
             <div class="price-tag" v-else>
               <span class="current-price">{{ book.price }}₺</span>
             </div>
           </div>
+        </div>
+
+        <!-- Yorum Bölümü -->
+        <div class="comments-section" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }">
+          <h2 :style="{ color: getThemeStyles.textColor }">Yorumlar</h2>
+          <div v-if="currentUser" class="comment-form">
+            <div class="comment-avatar">
+              <img :src="currentUser.avatar || ''" alt="Profil Fotoğrafı">
+            </div>
+            <textarea v-model="newCommentText" placeholder="Yorumunuzu buraya yazın..." :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor }"></textarea>
+            <button @click="addComment" :style="{ backgroundColor: getThemeStyles.accentColor, color: getThemeStyles.buttonTextColor }">Yorum Ekle</button>
+          </div>
+          <p v-else :style="{ color: getThemeStyles.textColor }">Yorum yapmak için lütfen giriş yapın.</p>
+
+          <div v-if="comments && comments.length > 0" class="comment-list">
+            <div v-for="comment in comments" :key="comment.id" class="comment-item" :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor }">
+              <div class="comment-avatar">
+                <img :src="comment.avatar" alt="Kullanıcı Avatarı">
+              </div>
+              <div class="comment-content">
+                <div class="comment-header">
+                  <span class="comment-username" :style="{ color: getThemeStyles.accentColor }">{{ comment.username }}</span>
+                  <span class="comment-date">{{ formatDate(comment.id) }}</span>
+                </div>
+                <p class="comment-text">
+                  {{ comment.text }}
+                </p>
+              </div>
+            </div>
+          </div>
+          <p v-else :style="{ color: getThemeStyles.textColor }">Bu kitap için henüz yorum yapılmamış. İlk yorumu siz yapın!</p>
         </div>
       </div>
 
@@ -67,7 +98,6 @@
         </router-link>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -77,6 +107,7 @@
   height: 100%;
   position: absolute;
 }
+
 .book-detail-container {
   max-width: 1280px;
   margin: 2rem auto;
@@ -273,7 +304,111 @@
   margin-top: 2rem;
 }
 
-/* Responsive Design */
+/* Yorumlar Bölümü */
+.comments-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  border-radius: 16px;
+}
+
+.comments-section h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+/* Yorum Formu */
+.comment-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.comment-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.comment-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.comment-form textarea {
+  flex: 1;
+  padding: 1rem;
+  border-radius: 12px;
+  border: none;
+  resize: vertical;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.comment-form textarea:focus {
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.comment-form button {
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap; /* Butonun içeriği kaydırmasını engeller */
+}
+
+/* Yorum Listesi */
+.comment-list {
+  margin-top: 2rem;
+}
+
+.comment-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.comment-item:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.comment-username {
+  font-weight: 600;
+  margin-right: 0.5rem;
+  font-size: 1rem;
+}
+
+.comment-date {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.comment-text {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
 @media (max-width: 1024px) {
   .book-content {
     grid-template-columns: 1fr 1.5fr;
@@ -282,6 +417,10 @@
 
   .book-title {
     font-size: 2rem;
+  }
+
+  .comments-section {
+    padding: 1.5rem;
   }
 }
 
@@ -330,6 +469,10 @@
     align-items: flex-start;
     gap: 0.5rem;
   }
+
+  .comments-section {
+    padding: 1rem;
+  }
 }
 </style>
 
@@ -343,8 +486,10 @@ export default {
     const route = useRoute();
     const store = useStore();
     const book = ref(null);
+    const newCommentText = ref('');
 
     const theme = computed(() => store.state.ui.theme);
+    const currentUser = computed(() => store.state.user.user);
 
     const getThemeStyles = computed(() => {
       const isDarkTheme = theme.value === 'dark';
@@ -359,18 +504,61 @@ export default {
       };
     });
 
+    const bookId = computed(() => parseInt(route.params.id));
+    const comments = computed(() => store.state.comments.comments[bookId.value] || []);
+
     onMounted(() => {
-      const bookId = parseInt(route.params.id);
       const storedBooks = localStorage.getItem('books');
       if (storedBooks) {
         const books = JSON.parse(storedBooks);
-        book.value = books.find((b) => b.id === bookId);
+        book.value = books.find((b) => b.id === bookId.value);
       }
+      store.dispatch('comments/fetchComments', bookId.value);
     });
+
+    const addComment = () => {
+      if (!currentUser.value) {
+        alert('Yorum yapmak için lütfen giriş yapın.');
+        return;
+      }
+
+      if (newCommentText.value.trim() === '') {
+        alert('Lütfen yorumunuzu yazın.');
+        return;
+      }
+
+      const comment = {
+        id: Date.now(),
+        text: newCommentText.value,
+        userId: currentUser.value.id,
+        username: currentUser.value.username,
+        avatar: currentUser.value.avatar // Kullanıcının avatarını da ekleyelim
+      };
+
+      store.dispatch('comments/addComment', { bookId: bookId.value, comment });
+      newCommentText.value = '';
+    };
+
+    // Tarih formatlama fonksiyonu
+    const formatDate = (timestamp) => {
+      const date = new Date(timestamp);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
+    };
 
     return {
       book,
+      newCommentText,
+      comments,
+      currentUser,
       getThemeStyles,
+      addComment,
+      formatDate //fonksiyonu export ettik
     };
   },
 };
