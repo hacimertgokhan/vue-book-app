@@ -50,7 +50,3 @@ Bu proje, Vue.js kullanarak oluşturulmuş basit bir kitap arama ve görüntüle
 ## Kullanım
 
 Uygulamayı çalıştırdıktan sonra, kitapları arayabilir, detaylarını görüntüleyebilir ve favorilerinize ekleyebilirsiniz.
-
-## Yapı
-
-Proje aşağıdaki gibi bir klasör yapısına sahiptir:
