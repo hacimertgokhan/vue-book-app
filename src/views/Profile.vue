@@ -146,7 +146,7 @@ export default {
     const store = useStore();
     const theme = computed(() => store.state.ui.theme || 'light');
 
-    // User data form
+
     const profileData = reactive({
       name: "",
       email: "",
@@ -170,7 +170,7 @@ export default {
           .join('');
     });
 
-    // Load user data
+
     onMounted(() => {
       const user = store.state.user.user;
       if (user) {
@@ -178,15 +178,15 @@ export default {
         profileData.email = user.email || '';
         profileData.username = user.username || '';
 
-        // Store original values
+
         originalData.value = { ...profileData };
       }
 
-      // Fetch comments
+
       store.dispatch("comments/fetchComments");
     });
 
-    // Watch for user changes
+
     watch(() => store.state.user.user, (newUser) => {
       if (newUser) {
         profileData.name = newUser.name || '';
@@ -203,7 +203,7 @@ export default {
         username: profileData.username
       });
 
-      // Update original data after save
+
       originalData.value = { ...profileData };
     };
 

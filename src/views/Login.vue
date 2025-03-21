@@ -21,7 +21,7 @@ import "vue-toastification/dist/index.css";
 import { mapActions } from "vuex";
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import bcrypt from 'bcryptjs'; // bcryptjs kütüphanesini import et
+import bcrypt from 'bcryptjs';
 
 export default {
   data() {
@@ -64,7 +64,7 @@ export default {
         return;
       }
 
-      // bcrypt.compareSync ile şifreyi karşılaştır
+
       const passwordMatch = bcrypt.compareSync(this.password, user.password);
 
       if (!passwordMatch) {

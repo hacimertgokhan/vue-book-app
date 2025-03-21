@@ -1,11 +1,11 @@
 <template>
   <nav class="navigation" :style="themedStyles.nav">
     <router-link to="/" class="brand-link" :style="themedStyles.brandLink">Virtara Group</router-link>
-    <input type="search" placeholder="Genel arama yapın..." :style="themedStyles.searchInput" />
+    <div style="display: flex; flex-direction: row; gap: 1em; align-items: center; place-items: center; justify-content: center;">
+      <router-link v-if="currentUser.user.role === '1'" to="/manage" :style="themedStyles.link">Yönet</router-link>
+      <router-link to="/books" :style="themedStyles.link">Kitaplar</router-link>
+    </div>
     <span class="sub">
-      <div v-if="currentUser.user.role === '1'">
-        <router-link to="/manage" :style="themedStyles.link">Yönet</router-link>
-      </div>
 
       <div class="dropdown">
         <button class="dropdown-button" @click="toggleDropdown" :style="themedStyles.dropdownButton">

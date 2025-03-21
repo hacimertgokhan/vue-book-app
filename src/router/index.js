@@ -12,6 +12,7 @@ import Manage from "@/views/Manage.vue";
 import Profile from "@/views/Profile.vue";
 import EditBook from "@/views/book/EditBook.vue";
 import AddBook from "@/views/book/AddBook.vue";
+import Books from "@/views/Books.vue";
 
 const routes = [
     {
@@ -79,6 +80,12 @@ const routes = [
         name: 'Kitap Detayı',
         component: BookDetails,
         props: true,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/books',
+        name: 'Kitaplar',
+        component: Books,
         meta: { requiresAuth: true }
     },
     {
