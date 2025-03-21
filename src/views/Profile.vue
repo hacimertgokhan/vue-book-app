@@ -41,8 +41,11 @@
                 placeholder="Kullanıcı adınızı girin"
             />
           </div>
-
           <div class="form-actions">
+
+            <button type="button" @click="toggleAdminRole" class="btn-admin">
+              Rolü Güncelle (Test İçin Eklenmiştir)
+            </button>
             <button type="button" @click="resetForm" class="btn-cancel">
               İptal
             </button>
@@ -138,6 +141,9 @@ import { mapState, mapActions } from "vuex";
 import Layout from "@/components/Layout.vue";
 import { computed, ref, reactive, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
+import {useToast} from "vue-toastification";
+
+const toast = useToast();
 
 export default {
   name: "UserProfile",
@@ -248,6 +254,11 @@ export default {
       return commentsArray;
     });
 
+    const toggleAdminRole = () => {
+      toast.success("Rol başarıyla güncellendi.")
+      store.dispatch('user/toggleAdmin');
+    };
+
     return {
       theme,
       profileData,
@@ -256,7 +267,8 @@ export default {
       saveUserInfo,
       resetForm,
       getUserCommentsCount,
-      getUserComments
+      getUserComments,
+      toggleAdminRole
     };
   },
   computed: {
@@ -487,6 +499,16 @@ button {
   padding: 20px;
   text-align: center;
   color: var(--color-text-secondary, #666666);
+}
+
+.btn-admin {
+  background-color: #e44d26;
+  color: white;
+  border: none;
+}
+
+.btn-admin:hover {
+  background-color: #c63e1a;
 }
 
 /* Dark theme */

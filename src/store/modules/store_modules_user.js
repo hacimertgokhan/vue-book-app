@@ -15,12 +15,12 @@ export default {
     user: safeGetItem('user', null),
     token: null,
     isAuthenticated: !!safeGetItem('user', null),
-    accounts: [], 
-    allUsers: safeGetItem('users', []), 
+    accounts: [],
+    allUsers: safeGetItem('users', []),
     settings: safeGetItem("settings", {
       requirePasswordForSwitch: false
     }),
-    selectedAccount: null, 
+    selectedAccount: null,
   },
   mutations: {
     SET_USER(state, user) {
@@ -40,11 +40,18 @@ export default {
     },
     SET_ALL_USERS(state, users) {
       state.allUsers = users;
-      localStorage.setItem('users', JSON.stringify(users)); 
+      localStorage.setItem('users', JSON.stringify(users));
     },
     UPDATE_USER(state, updatedUser) {
       state.user = { ...state.user, ...updatedUser };
       localStorage.setItem('user', JSON.stringify(state.user));
+
+      // allUsers listesini de güncelle
+      const index = state.allUsers.findIndex(u => u.id === updatedUser.id);
+      if (index !== -1) {
+        state.allUsers.splice(index, 1, { ...state.allUsers[index], ...updatedUser });
+        localStorage.setItem('users', JSON.stringify(state.allUsers));
+      }
     },
     SET_SETTINGS(state, settings) {
       state.settings = { ...state.settings, ...settings };
@@ -85,8 +92,8 @@ export default {
           name: user.name || "Unknown Account",
           role: user.role || "0",
         }));
-        commit("SET_ACCOUNTS", accounts); 
-        commit("SET_ALL_USERS", users); 
+        commit("SET_ACCOUNTS", accounts);
+        commit("SET_ALL_USERS", users);
         return accounts;
       } catch (error) {
         console.error("Failed to load accounts:", error);
@@ -98,6 +105,11 @@ export default {
     },
     setSelectedAccount({ commit }, account) {
       commit("SET_SELECTED_ACCOUNT", account);
+    },
+    toggleAdmin({ commit, state }) {
+      const newRole = state.user.role === 0 ? 1 : 0;
+      const updatedUser = { ...state.user, role: newRole };
+      commit('UPDATE_USER', updatedUser);
     }
   }
 };

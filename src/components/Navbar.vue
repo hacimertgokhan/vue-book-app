@@ -2,20 +2,20 @@
   <nav class="navigation" :style="themedStyles.nav">
     <router-link to="/" class="brand-link" :style="themedStyles.brandLink">Virtara Group</router-link>
 
-    <!-- Hamburger menü butonu (mobil için) -->
     <div class="hamburger-menu" @click="toggleMobileMenu" :class="{ 'active': isMobileMenuOpen }" :style="themedStyles.hamburgerMenu">
       <span></span>
       <span></span>
       <span></span>
     </div>
 
-    <!-- Navigasyon linkleri ve kullanıcı menüsü -->
     <div class="nav-links" :class="{ 'active': isMobileMenuOpen }" :style="themedStyles.navLinks">
       <div class="links-section">
-        <router-link v-if="currentUser.user?.role === '1'" to="/manage" :style="themedStyles.link" @click="closeMobileMenu">Yönet</router-link>
+        <div v-if="currentUser.valueOf().user.role === 1">
+          <router-link  to="/manage" :style="themedStyles.link" @click="closeMobileMenu">Yönet</router-link>
+        </div>
         <router-link to="/books" :style="themedStyles.link" @click="closeMobileMenu">Kitaplar</router-link>
+        <router-link to="/exchange" :style="themedStyles.link" @click="closeMobileMenu">Döviz</router-link>
       </div>
-
       <div class="user-section">
         <div class="dropdown">
           <button class="dropdown-button" @click="toggleDropdown" :style="themedStyles.dropdownButton">
@@ -47,7 +47,6 @@
       </div>
     </div>
 
-    <!-- Overlay - mobil menü açıkken arka planı koyulaştırır -->
     <div class="nav-overlay" v-if="isMobileMenuOpen" @click="closeMobileMenu"></div>
   </nav>
 </template>
