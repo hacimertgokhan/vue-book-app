@@ -68,7 +68,7 @@
             <div class="stat-label">Eklenen Kitap</div>
           </div>
           <div class="stat-item">
-            <div class="stat-value">{{ userComments?.length || 0 }}</div>
+            <div class="stat-value">{{ getUserCommentsCount }}</div>
             <div class="stat-label">Yorum</div>
           </div>
           <div class="stat-item-wide">
@@ -118,8 +118,8 @@
           <h2>Yorumlarınız</h2>
         </div>
         <div class="content-list">
-          <div v-if="userComments?.length" class="list-container">
-            <div v-for="comment in userComments" :key="comment.id" class="list-item comment-item">
+          <div v-if="getUserComments.length" class="list-container">
+            <div v-for="comment in getUserComments" :key="comment.id" class="list-item comment-item">
               <div class="comment-book">{{ comment.bookTitle }}</div>
               <div class="comment-text">"{{ comment.text }}"</div>
             </div>
@@ -213,13 +213,50 @@ export default {
       profileData.username = originalData.value.username || '';
     };
 
+    const getUserCommentsCount = computed(() => {
+      const userComments = store.state.comments.comments;
+      let count = 0;
+      for (const bookId in userComments) {
+        if (userComments.hasOwnProperty(bookId)) {
+          count += userComments[bookId].filter(comment => comment.username === profileData.username).length;
+        }
+      }
+      return count;
+    });
+
+    const getUserComments = computed(() => {
+      const userComments = store.state.comments.comments;
+      const username = profileData.username;
+      const commentsArray = [];
+
+      if (userComments) {
+        for (const bookId in userComments) {
+          if (userComments.hasOwnProperty(bookId)) {
+            const bookComments = userComments[bookId];
+            bookComments.forEach(comment => {
+              if (comment.username === username) {
+                commentsArray.push({
+                  ...comment,
+                  bookTitle: store.state.books.books.find(book => book.id === parseInt(bookId))?.title || 'Bilinmeyen Kitap'
+                });
+              }
+            });
+          }
+        }
+      }
+
+      return commentsArray;
+    });
+
     return {
       theme,
       profileData,
       formChanged,
       userInitials,
       saveUserInfo,
-      resetForm
+      resetForm,
+      getUserCommentsCount,
+      getUserComments
     };
   },
   computed: {
@@ -230,12 +267,6 @@ export default {
 
     userBooks() {
       return this.books?.filter(book => book.addedBy === this.user?.id) || [];
-    },
-
-    userComments() {
-      return Array.isArray(this.comments)
-          ? this.comments.filter(comment => comment.userId === this.user?.id)
-          : [];
     },
 
     favoriteCategory() {

@@ -11,7 +11,6 @@
 import { useStore } from "vuex";
 import {computed} from "vue";
 import CurrencyBar from "@/components/currency/CurrencyBar.vue";
-const currentUser = computed(() => store.state.user);
 
 const store = useStore();
 </script>

@@ -15,12 +15,12 @@ export default {
     user: safeGetItem('user', null),
     token: null,
     isAuthenticated: !!safeGetItem('user', null),
-    accounts: [], // SADECE arayüzde gösterilen hesaplar
-    allUsers: safeGetItem('users', []), // TÜM kullanıcılar (giriş yapılabilenler)
+    accounts: [], 
+    allUsers: safeGetItem('users', []), 
     settings: safeGetItem("settings", {
       requirePasswordForSwitch: false
     }),
-    selectedAccount: null, // Geçiş için seçilen hesap
+    selectedAccount: null, 
   },
   mutations: {
     SET_USER(state, user) {
@@ -40,7 +40,7 @@ export default {
     },
     SET_ALL_USERS(state, users) {
       state.allUsers = users;
-      localStorage.setItem('users', JSON.stringify(users)); // TÜM kullanıcıları güncelleyin
+      localStorage.setItem('users', JSON.stringify(users)); 
     },
     UPDATE_USER(state, updatedUser) {
       state.user = { ...state.user, ...updatedUser };
@@ -85,8 +85,8 @@ export default {
           name: user.name || "Unknown Account",
           role: user.role || "0",
         }));
-        commit("SET_ACCOUNTS", accounts); // Sadece arayüzde gösterilen hesaplar
-        commit("SET_ALL_USERS", users); // Tüm kullanıcılar
+        commit("SET_ACCOUNTS", accounts); 
+        commit("SET_ALL_USERS", users); 
         return accounts;
       } catch (error) {
         console.error("Failed to load accounts:", error);

@@ -34,10 +34,10 @@ const verifyPassword = async () => {
     return;
   }
 
-  // LocalStorage'dan tüm kullanıcıları al
+
   const allUsers = JSON.parse(localStorage.getItem('users')) || [];
 
-  // Seçilen hesaba ait kullanıcıyı bul
+
   const user = allUsers.find(u => u.email === selectedAccount.email);
 
   if (!user) {

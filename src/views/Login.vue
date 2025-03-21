@@ -39,11 +39,11 @@ export default {
     const getThemeStyles = computed(() => {
       const isDarkTheme = theme.value === 'dark';
       return {
-        containerBackgroundColor: isDarkTheme ? 'rgba(9, 9, 11, 0.90)' : 'rgba(240, 240, 240, 0.90)', // Daha açık bir arka plan
+        containerBackgroundColor: isDarkTheme ? 'rgba(9, 9, 11, 0.90)' : 'rgba(240, 240, 240, 0.90)',
         textColor: isDarkTheme ? '#e2e2e2' : '#333333',
-        borderColor: isDarkTheme ? '#202020' : '#CCCCCC', // Daha açık bir kenarlık rengi
-        inputBackgroundColor: isDarkTheme ? '#101010' : '#FFFFFF', // Beyaz input arka planı
-        inputBorderColor: isDarkTheme ? (isDarkTheme ? '#555555' : '#999999') : '#999999', // Input kutularının alt çizgi rengi
+        borderColor: isDarkTheme ? '#202020' : '#CCCCCC',
+        inputBackgroundColor: isDarkTheme ? '#101010' : '#FFFFFF',
+        inputBorderColor: isDarkTheme ? (isDarkTheme ? '#555555' : '#999999') : '#999999',
         buttonTextColor: isDarkTheme ? '#e2e2e2' : '#FFFFFF',
         accentColor: isDarkTheme ? '#1976d2' : '#007bff',
       };
@@ -64,7 +64,7 @@ export default {
       }
 
       console.log(user);
-      this.login(user); // Doğru şekilde çağrılmalı
+      this.login(user);
       this.toast.success("Giriş başarılı !");
       this.$router.push("/");
     }

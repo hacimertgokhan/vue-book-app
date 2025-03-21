@@ -12,4 +12,9 @@ app.use(store);
 app.use(router);
 app.use(Toast);
 
+store.dispatch('currency/fetchRates').catch(error => {
+    console.error('Error loading initial currency rates:', error);
+});
+
+
 app.mount("#app");

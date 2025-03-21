@@ -17,7 +17,7 @@ const saveBooksToStorage = (books) => {
 export default {
   namespaced: true,
   state: {
-    books: safeGetItem("books", featuredBooks.value), // Başlangıçta featuredBooks'u kullan
+    books: safeGetItem("books", featuredBooks.value), 
     selectedBook: safeGetItem("selectedBook", null),
     loading: false,
     error: null,
@@ -25,11 +25,11 @@ export default {
   mutations: {
     SET_BOOKS(state, books) {
       state.books = books;
-      saveBooksToStorage(books); // Her değişiklikte localStorage'a kaydet
+      saveBooksToStorage(books); 
     },
     SET_SELECTED_BOOK(state, book) {
       state.selectedBook = book;
-      localStorage.setItem("selectedBook", JSON.stringify(book)); // Seçilen kitabı kaydet
+      localStorage.setItem("selectedBook", JSON.stringify(book)); 
     },
     SET_LOADING(state, status) {
       state.loading = status;
@@ -42,9 +42,9 @@ export default {
     async fetchBooks({ commit }) {
       try {
         commit("SET_LOADING", true);
-        let books = safeGetItem("books", featuredBooks.value); // localStorage'dan yoksa featuredBooks
+        let books = safeGetItem("books", featuredBooks.value); 
         if (books.length === 0) {
-          books = featuredBooks.value; // Eğer localStorage boşsa başlangıç verisini kullan
+          books = featuredBooks.value; 
         }
         commit("SET_BOOKS", books);
       } catch (error) {
@@ -67,11 +67,11 @@ export default {
         commit("SET_LOADING", false);
       }
     },
-    // Yeni bir kitap eklemek için ek bir action
+    
     async addBook({ commit, state }, newBook) {
       try {
         commit("SET_LOADING", true);
-        const updatedBooks = [...state.books, { ...newBook, id: Date.now() }]; // Benzersiz ID
+        const updatedBooks = [...state.books, { ...newBook, id: Date.now() }]; 
         commit("SET_BOOKS", updatedBooks);
       } catch (error) {
         commit("SET_ERROR", error.message);

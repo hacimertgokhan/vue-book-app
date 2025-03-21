@@ -86,7 +86,7 @@ const convertedPrices = computed(() => {
   return result;
 });
 
-// Methods
+
 const nextStep = () => {
   if (validateCurrentStep()) {
     if (currentStep.value < totalSteps) {
@@ -202,7 +202,7 @@ const submitForm = () => {
     bookForm.summary = summaryContent.value;
     const booksInStorage = JSON.parse(localStorage.getItem('books') || '[]');
 
-    // Güncelleme
+
     const bookIndex = booksInStorage.findIndex(book => book.id === bookForm.id);
     if (bookIndex !== -1) {
       booksInStorage[bookIndex] = { ...bookForm };
@@ -211,11 +211,11 @@ const submitForm = () => {
     }
     localStorage.setItem('books', JSON.stringify(booksInStorage));
     localStorage.removeItem('bookFormState');
-    router.push('/'); // Kitap listesine geri dön
+    router.push('/');
   }
 };
 
-// Reset form
+
 const resetForm = () => {
   Object.keys(bookForm).forEach(key => {
     if (typeof bookForm[key] === 'string') {
@@ -259,7 +259,7 @@ const loadBookForEdit = async () => {
     const bookToEdit = booksInStorage.find(book => book.id === parseInt(route.params.id));
 
     if (bookToEdit) {
-      // Tek tek değerleri atayarak reaktifliği tetikle
+
       bookForm.id = bookToEdit.id;
       bookForm.title = bookToEdit.title;
       bookForm.author = bookToEdit.author;
@@ -275,7 +275,7 @@ const loadBookForEdit = async () => {
       bookForm.currency = bookToEdit.currency;
       bookForm.coverImage = bookToEdit.coverImage;
 
-      // Türüne göre alt alanları da doldur
+
       if (bookToEdit.bookType === 'fiction') {
         bookForm.fiction.characters = bookToEdit.fiction.characters;
         bookForm.fiction.series = bookToEdit.fiction.series;
@@ -294,7 +294,7 @@ const loadBookForEdit = async () => {
       imagePreview.value = bookToEdit.coverImage;
     } else {
       console.error("Düzenlenecek kitap bulunamadı.");
-      // Kitap bulunamazsa kullanıcıyı bilgilendirebilir veya başka bir sayfaya yönlendirebilirsiniz.
+
     }
   } catch (error) {
     console.error("Kitap yüklenirken hata oluştu:", error);
@@ -303,21 +303,21 @@ const loadBookForEdit = async () => {
 
 const theme = computed(() => store.state.ui.theme);
 
-// Stil fonksiyonları
+
 const getThemeStyles = computed(() => {
   const isDarkTheme = theme.value === 'dark';
   return {
     backgroundColor: isDarkTheme ? '#09090b' : '#FFFFFF',
     textColor: isDarkTheme ? '#e2e2e2' : '#333333',
     borderColor: isDarkTheme ? '#202020' : '#DDDDDD',
-    accentColor: '#007bff', // Mavi vurgu rengi, değişebilir
+    accentColor: '#007bff',
     boxShadow: isDarkTheme ? '0 4px 12px rgba(255, 255, 255, 0.1)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
     inputBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
     selectBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
   };
 });
 
-// Lifecycle hooks
+
 onMounted(() => {
   fetchExchangeRates();
   loadFormState();
@@ -331,7 +331,6 @@ onMounted(() => {
       <h1>Kitap Düzenle</h1>
 
       <div class="form-content">
-        <!-- Progress bar -->
         <div class="progress-bar">
           <div class="progress-labels" :style="{ color: getThemeStyles.textColor }">
             <span>Adım {{ currentStep }} / {{ totalSteps }}</span>
@@ -632,7 +631,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Step 4: Cover Image -->
         <div v-if="currentStep === 4" class="form-step">
           <h2 :style="{ color: getThemeStyles.textColor }">Kapak Görseli</h2>
 
@@ -648,7 +646,6 @@ onMounted(() => {
             <p class="note" :style="{ color: getThemeStyles.textColor }">PNG, JPG veya GIF, max 5MB</p>
           </div>
 
-          <!-- Image preview -->
           <div v-if="imagePreview" class="image-preview">
             <h3 :style="{ color: getThemeStyles.textColor }">Görsel Önizleme:</h3>
             <div class="preview-container" :style="{ borderColor: getThemeStyles.borderColor }">
@@ -665,7 +662,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Navigation buttons -->
         <div class="navigation-buttons">
           <button
               v-if="currentStep > 1"

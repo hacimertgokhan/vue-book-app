@@ -129,7 +129,7 @@ const itemsPerPage = 15;
 const currentPage = ref(1);
 const searchQuery = ref('');
 const autoUpdate = ref(true);
-const updateInterval = 5000; // 5 saniye
+const updateInterval = 5000;
 const nextUpdateCountdown = ref(5);
 const isUpdating = ref(false);
 const isLoading = ref(true);
@@ -138,19 +138,19 @@ const updatedCurrencies = ref(new Set());
 let timer = null;
 let countdownTimer = null;
 
-// Önceki oranları takip etmek için kayıt
+
 const previousRates = ref({});
 
-// Store'dan döviz kurlarını al ve dizi formatına dönüştür
+
 const currencyArray = computed(() => {
   const ratesObj = store.state.currency.rates;
   return Object.keys(ratesObj).map(code => {
-    // Önceki oran yoksa, mevcut oranı kullan
+
     if (!previousRates.value[code]) {
       previousRates.value[code] = ratesObj[code];
     }
 
-    // Oran değişimini hesapla
+
     const trend = previousRates.value[code] !== ratesObj[code]
         ? ((ratesObj[code] - previousRates.value[code]) / previousRates.value[code]) * 100
         : 0;
@@ -164,7 +164,7 @@ const currencyArray = computed(() => {
   });
 });
 
-// Arama filtresine göre dövizleri filtrele
+
 const filteredCurrencies = computed(() => {
   let filtered = currencyArray.value;
 
@@ -176,12 +176,12 @@ const filteredCurrencies = computed(() => {
     });
   }
 
-  // Sayfalandırma
+
   const startIndex = (currentPage.value - 1) * itemsPerPage;
   return filtered.slice(startIndex, startIndex + itemsPerPage);
 });
 
-// Toplam sayfa sayısını hesapla
+
 const totalPages = computed(() => {
   const filtered = currencyArray.value.filter(currency => {
     if (!searchQuery.value.trim()) return true;
@@ -193,7 +193,7 @@ const totalPages = computed(() => {
   return Math.ceil(filtered.length / itemsPerPage);
 });
 
-// Para birimi adını döndür
+
 const getCurrencyName = (code) => {
   const names = {
     'USD': 'Amerikan Doları',
@@ -207,13 +207,13 @@ const getCurrencyName = (code) => {
     'TRY': 'Türk Lirası',
     'RUB': 'Rus Rublesi',
     'INR': 'Hint Rupisi',
-    // Diğer para birimleri eklenebilir
+
   };
 
   return names[code] || `${code} Para Birimi`;
 };
 
-// Para birimi için bayrak emoji döndür
+
 const getCurrencyFlag = (code) => {
   const flags = {
     'USD': '🇺🇸',
@@ -227,23 +227,23 @@ const getCurrencyFlag = (code) => {
     'TRY': '🇹🇷',
     'RUB': '🇷🇺',
     'INR': '🇮🇳',
-    // Diğer para birimleri için bayraklar eklenebilir
+
   };
 
   return flags[code] || '🏳️';
 };
 
-// Oranı formatlama
+
 const formatRate = (rate) => {
   return parseFloat(rate).toFixed(4);
 };
 
-// Güncellenmiş para birimi kontrolü
+
 const isUpdated = (code) => {
   return updatedCurrencies.value.has(code);
 };
 
-// Zaman formatla
+
 const formatTime = () => {
   const now = new Date();
   const hours = now.getHours().toString().padStart(2, '0');
@@ -252,23 +252,23 @@ const formatTime = () => {
   return `${hours}:${minutes}:${seconds}`;
 };
 
-// Döviz kurlarını güncelle
+
 const fetchRates = async () => {
   if (isUpdating.value) return;
 
   isUpdating.value = true;
 
   try {
-    // Önceki oranları kaydet
+
     const currentRates = store.state.currency.rates;
     Object.keys(currentRates).forEach(code => {
       previousRates.value[code] = currentRates[code];
     });
 
-    // Verileri getir
+
     await store.dispatch('currency/fetchRates');
 
-    // Güncellenen para birimlerini işaretle
+
     updatedCurrencies.value.clear();
     const newRates = store.state.currency.rates;
     Object.keys(newRates).forEach(code => {
@@ -277,10 +277,10 @@ const fetchRates = async () => {
       }
     });
 
-    // Son güncelleme zamanını kaydet
+
     lastUpdateTime.value = formatTime();
 
-    // 3 saniye sonra güncelleme vurgusunu kaldır
+
     setTimeout(() => {
       updatedCurrencies.value.clear();
     }, 3000);
@@ -292,30 +292,30 @@ const fetchRates = async () => {
   }
 };
 
-// Manuel güncelleme
+
 const manualRefresh = () => {
   fetchRates();
   resetCountdown();
 };
 
-// Geri sayımı sıfırla
+
 const resetCountdown = () => {
   nextUpdateCountdown.value = 5;
 };
 
-// Otomatik güncelleme işlevini ayarla/kaldır
+
 const setupAutoUpdate = () => {
   clearInterval(timer);
   clearInterval(countdownTimer);
 
   if (autoUpdate.value) {
-    // Verileri her 5 saniyede bir güncelle
+
     timer = setInterval(() => {
       fetchRates();
       resetCountdown();
     }, updateInterval);
 
-    // Geri sayım sayacını güncelle
+
     countdownTimer = setInterval(() => {
       if (nextUpdateCountdown.value > 0) {
         nextUpdateCountdown.value -= 1;
@@ -324,10 +324,10 @@ const setupAutoUpdate = () => {
   }
 };
 
-// Otomatik güncellemeyi izle
+
 watch(autoUpdate, setupAutoUpdate);
 
-// Sayfalama veya arama değiştiğinde scrollu başa al
+
 watch([currentPage, searchQuery], () => {
   if (scrollContainer.value) {
     scrollContainer.value.scrollTop = 0;

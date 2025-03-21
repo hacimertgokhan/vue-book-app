@@ -38,7 +38,7 @@ export default {
       }
 
       this.toast.success("E-posta adresinize sıfırlama bağlantısı gönderildi.");
-      // Burada kullanıcıya şifre sıfırlama e-postası göndermeyi simüle edebilirsiniz
+
     },
   },
 };

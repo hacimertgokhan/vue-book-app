@@ -21,7 +21,7 @@ const themedStyles = computed(() => {
     container: {
       backgroundColor: isDarkTheme ? '#09090b' : '#FFFFFF',
       color: isDarkTheme ? '#e2e2e2' : '#333333',
-      minHeight: '100vh', // Ekran yüksekliğine göre ayarla
+      minHeight: '100vh',
     },
   };
 });
@@ -31,7 +31,7 @@ const themedStyles = computed(() => {
 .layout-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Tüm ekranı kaplaması için */
+  min-height: 100vh;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 </style>

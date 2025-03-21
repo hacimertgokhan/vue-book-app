@@ -31,7 +31,7 @@ const updateCurrency = () => {
     currentCurrency.value = currencies[currentCurrencyIndex.value];
     currentRate.value = formatRate(store.state.currency.rates[currentCurrency.value]);
     fadeIn.value = true;
-  }, 500); // Fade-out süresiyle aynı olmalı
+  }, 500);
 };
 
 const goToExchangePage = () => {
@@ -39,15 +39,12 @@ const goToExchangePage = () => {
 }
 
 const formatRate = (rate) => {
-  return parseFloat(1 / rate).toFixed(4); // TRY'nin değeri için tersini alıyoruz
+  return parseFloat(1 / rate).toFixed(4);
 };
 
 onMounted(() => {
-  // İlk değeri ayarla
   currentRate.value = formatRate(store.state.currency.rates[currencies[0]]);
-
-  // Döviz kurlarını belirli aralıklarla güncelle
-  timer = setInterval(updateCurrency, 3000); // 3 saniyede bir döviz değiştir
+  timer = setInterval(updateCurrency, 3000);
 });
 
 onUnmounted(() => {

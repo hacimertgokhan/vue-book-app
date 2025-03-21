@@ -85,7 +85,7 @@ const convertedPrices = computed(() => {
   return result;
 });
 
-// Methods
+
 const nextStep = () => {
   if (validateCurrentStep()) {
     if (currentStep.value < totalSteps) {
@@ -165,7 +165,7 @@ const handleImageUpload = (event) => {
 const fetchExchangeRates = async () => {
   try {
     loading.value = true;
-    // Replace with your API key and actual API endpoint
+
     const response = await axios.get('https://api.exchangerate-api.com/v4/latest/TRY');
     exchangeRates.value = response.data.rates;
     loading.value = false;
@@ -202,17 +202,17 @@ const submitForm = () => {
     bookForm.summary = summaryContent.value;
     const booksInStorage = JSON.parse(localStorage.getItem('books') || '[]');
 
-    bookForm.id = Date.now(); // Simple ID generation
+    bookForm.id = Date.now();
     booksInStorage.push({ ...bookForm });
     toast.success('Kitap başarıyla eklendi!');
 
     localStorage.setItem('books', JSON.stringify(booksInStorage));
     localStorage.removeItem('bookFormState');
-    router.push('/'); // Kitap listesine geri dön
+    router.push('/');
   }
 };
 
-// Reset form
+
 const resetForm = () => {
   Object.keys(bookForm).forEach(key => {
     if (typeof bookForm[key] === 'string') {
@@ -247,21 +247,21 @@ const resetForm = () => {
 
 const theme = computed(() => store.state.ui.theme);
 
-// Stil fonksiyonları
+
 const getThemeStyles = computed(() => {
   const isDarkTheme = theme.value === 'dark';
   return {
     backgroundColor: isDarkTheme ? '#09090b' : '#FFFFFF',
     textColor: isDarkTheme ? '#e2e2e2' : '#333333',
     borderColor: isDarkTheme ? '#202020' : '#DDDDDD',
-    accentColor: '#007bff', // Mavi vurgu rengi, değişebilir
+    accentColor: '#007bff',
     boxShadow: isDarkTheme ? '0 4px 12px rgba(255, 255, 255, 0.1)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
     inputBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
     selectBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
   };
 });
 
-// Lifecycle hooks
+
 onMounted(() => {
   fetchExchangeRates();
   loadFormState();

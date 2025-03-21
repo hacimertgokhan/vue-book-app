@@ -7,14 +7,14 @@ import router from "@/router/index.js";
 
 const store = useStore();
 
-// Tema ile ilgili değişkenler
+
 const theme = computed(() => store.state.ui.theme);
 
-// Karusel ile ilgili değişkenler
-const currentIndex = ref(0);
-const slideWidth = ref(320);
 
-// Arama ve filtreleme ile ilgili değişkenler
+const currentIndex = ref(0);
+const slideWidth = ref(300);
+
+
 const viewMode = computed(() => store.state.ui.viewMode);
 const searchQuery = ref('');
 const isLoading = computed(() => store.state.books.loading);
@@ -22,16 +22,12 @@ const page = ref(1);
 const totalPages = ref(10);
 const currentUser = computed(() => store.state.user);
 
-// Para birimi ile ilgili değişkenler
-const selectedCurrency = ref('TRY');
-const currencyRates = ref({
-  TRY: 1,
-  USD: 0.033,
-  EUR: 0.030,
-  GBP: 0.026
-});
 
-// Filtreler
+const selectedCurrency = computed(() => store.state.currency.selectedCurrency);
+const currencyRates = computed(() => store.state.currency.rates);
+const getRate = computed(() => store.getters['currency/getRate']);
+
+
 const priceMin = ref(0);
 const priceMax = ref(1000);
 const yearMin = ref(1900);
@@ -48,7 +44,7 @@ const filters = ref({
   onlyFree: false
 });
 
-// Kategoriler ve diller
+
 const categories = ref([
   'Roman', 'Bilim Kurgu', 'Tarih', 'Felsefe', 'Biyografi',
   'Psikoloji', 'Çocuk Kitapları', 'Bilim', 'İş', 'Teknoloji'
@@ -58,21 +54,21 @@ const languages = ref([
   'Türkçe', 'İngilizce', 'Fransızca', 'Almanca', 'İspanyolca'
 ]);
 
-// Favoriler
+
 const favorites = ref([]);
 
-// Kitaplar
+
 const allBooks = computed(() => store.state.books.books || []);
 const featuredBooks = computed(() => store.state.books.books ? store.state.books.books.slice(0, 6) : []);
 
-// Ref'ler
+
 const carouselRef = ref(null);
 
-// Yükleme fonksiyonu
+
 const loadMoreBooks = async () => {
   if (isLoading.value || page.value >= totalPages.value) return;
 
-  // Create sample new books based on existing ones
+
   if (allBooks.value.length > 0) {
     const newBooks = allBooks.value.slice(0, 6).map(book => ({
       ...book,
@@ -81,7 +77,7 @@ const loadMoreBooks = async () => {
       image: `https://picsum.photos/300/450?random=${Math.floor(Math.random() * 100)}`
     }));
 
-    // Use the store action to add these books
+
     newBooks.forEach(book => {
       store.dispatch('books/addBook', book);
     });
@@ -90,10 +86,13 @@ const loadMoreBooks = async () => {
   }
 };
 
-// Bileşen monte edildiğinde
-onMounted(() => {
-  // Fetch books from localStorage on mount
-  store.dispatch('books/fetchBooks');
+
+onMounted(async () => {
+
+  await Promise.all([
+    store.dispatch('books/fetchBooks'),
+    store.dispatch('currency/fetchRates')
+  ]);
 
   const observer = new IntersectionObserver((entries) => {
     const target = entries[0];
@@ -105,72 +104,36 @@ onMounted(() => {
   if (document.querySelector('.loading-indicator')) {
     observer.observe(document.querySelector('.loading-indicator'));
   }
-
-  if (carouselRef.value) {
-    nextTick(() => {
-      slideWidth.value = carouselRef.value.offsetWidth * 0.8;
-    });
-  }
-
-  window.addEventListener('resize', handleResize);
-  startAutoSlide();
 });
 
-// Bileşen kaldırıldığında
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-  stopAutoSlide();
-});
 
-// Stil fonksiyonları
 const getThemeStyles = computed(() => {
   const isDarkTheme = theme.value === 'dark';
   return {
     backgroundColor: isDarkTheme ? '#09090b' : '#FFFFFF',
     textColor: isDarkTheme ? '#e2e2e2' : '#333333',
     borderColor: isDarkTheme ? '#202020' : '#DDDDDD',
-    accentColor: '#007bff', // Mavi vurgu rengi, değişebilir
+    accentColor: '#007bff',
     boxShadow: isDarkTheme ? '0 4px 12px rgba(255, 255, 255, 0.1)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
     inputBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
     selectBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
   };
 });
 
-// Karusel ile ilgili fonksiyonlar
-const handleResize = debounce(() => {
-  if (carouselRef.value) {
-    slideWidth.value = carouselRef.value.offsetWidth * 0.8;
-  }
-}, 200);
-
-let interval;
-const startAutoSlide = () => {
-  interval = setInterval(() => {
-    nextSlide();
-  }, 5000);
-};
-
-const stopAutoSlide = () => {
-  clearInterval(interval);
-};
 
 const nextSlide = () => {
-  if (featuredBooks.value.length > 0) {
-    currentIndex.value = (currentIndex.value + 1) % featuredBooks.value.length;
+  if (currentIndex.value < featuredBooks.value.length - 1) {
+    currentIndex.value++;
   }
 };
 
 const prevSlide = () => {
-  if (featuredBooks.value.length > 0) {
-    currentIndex.value = (currentIndex.value - 1 + featuredBooks.value.length) % featuredBooks.value.length;
+  if (currentIndex.value > 0) {
+    currentIndex.value--;
   }
 };
 
-const goToSlide = (index) => {
-  currentIndex.value = index;
-};
 
-// Arama fonksiyonu
 const debouncedSearch = debounce(() => {
   console.log("Arama yapılıyor:", searchQuery.value);
 }, 200);
@@ -179,20 +142,19 @@ watch(searchQuery, () => {
   debouncedSearch();
 });
 
-// Filtreleme fonksiyonları
+
 const clearFilters = () => {
   filters.value = {
     category: '',
     language: '',
     priceRange: [priceMin.value, priceMax.value],
     yearRange: [yearMin.value, yearMax.value],
-    pageRange: [pageMin.value, pageMax.value],
     onlyFree: false
   };
   searchQuery.value = '';
 };
 
-// Favori fonksiyonları
+
 const toggleFavorite = (book) => {
   const index = favorites.value.findIndex(id => id === book.id);
   if (index === -1) {
@@ -206,16 +168,20 @@ const isFavorite = (id) => {
   return favorites.value.includes(id);
 };
 
-// Kitap detaylarına gitme fonksiyonu
+
 const openBookDetails = (book) => {
   store.dispatch('books/selectBook', book.id);
   router.push('/book/' + book.id);
 };
 
-// Fiyat formatlama fonksiyonu
+
 const formatPrice = (price) => {
   if (price === 0) return "Ücretsiz";
 
+  const rate = getRate.value(selectedCurrency.value);
+  if (!rate) return 'Döviz Kuru Bulunamadı';
+
+  const convertedPrice = price * rate;
   const currencySymbols = {
     TRY: "₺",
     USD: "$",
@@ -223,12 +189,10 @@ const formatPrice = (price) => {
     GBP: "£"
   };
 
-  const convertedPrice = price * currencyRates.value[selectedCurrency.value];
-
   return `${currencySymbols[selectedCurrency.value]}${convertedPrice.toFixed(2)}`;
 };
 
-// Kitap filtreleme fonksiyonu
+
 const filteredBooks = computed(() => {
   let result = allBooks.value.filter(book => {
     if (searchQuery.value && !book.title.toLowerCase().includes(searchQuery.value.toLowerCase()) &&
@@ -267,7 +231,7 @@ const filteredBooks = computed(() => {
   return result;
 });
 
-// İndirimli ve ücretsiz kitaplar
+
 const freeBooks = computed(() => store.getters['books/freeBooks']);
 const discountedBooks = computed(() => store.getters['books/discountedBooks']);
 
@@ -278,6 +242,56 @@ const toggleTheme = () => {
 const setViewMode = (mode) => {
   store.commit('ui/SET_VIEW_MODE', mode);
 };
+
+
+const visibleBooks = ref([]);
+const startIndex = ref(0);
+const visibleBookCount = ref(20);
+const bookListContainer = ref(null);
+
+const updateVisibleBooks = () => {
+  visibleBooks.value = filteredBooks.value.slice(startIndex.value, startIndex.value + visibleBookCount.value);
+};
+
+const handleScroll = () => {
+  if (bookListContainer.value) {
+    const containerHeight = bookListContainer.value.offsetHeight;
+    const scrollHeight = bookListContainer.value.scrollHeight;
+    const scrollTop = bookListContainer.value.scrollTop;
+
+
+    if (scrollTop + containerHeight >= scrollHeight - 200) {
+      loadMoreVisibleBooks();
+    }
+  }
+};
+
+const loadMoreVisibleBooks = () => {
+  if (startIndex.value + visibleBookCount.value < filteredBooks.value.length) {
+    startIndex.value += visibleBookCount.value;
+    updateVisibleBooks();
+  }
+};
+
+watch(filteredBooks, () => {
+  startIndex.value = 0;
+  updateVisibleBooks();
+});
+
+onMounted(() => {
+  updateVisibleBooks();
+  if (bookListContainer.value) {
+    bookListContainer.value.addEventListener('scroll', handleScroll);
+  }
+});
+
+onUnmounted(() => {
+  if (bookListContainer.value) {
+    if (bookListContainer.value) {
+      bookListContainer.value.removeEventListener('scroll', handleScroll);
+    }
+  }
+});
 </script>
 
 <template>
@@ -287,17 +301,16 @@ const setViewMode = (mode) => {
         <h1 class="greeting">Merhaba, {{ currentUser.valueOf().user.username }}</h1>
         <h2 class="subheading">Bu gün hangi kitaplara göz gezdirmek istersin?</h2>
       </header>
-
       <section class="featured-books" v-if="featuredBooks.length > 0">
         <h3 class="section-title">Öne Çıkan Kitaplar</h3>
         <div class="carousel-container">
-          <button class="carousel-btn left" @click="prevSlide">
+          <button class="carousel-btn left" @click="prevSlide" :disabled="currentIndex === 0">
             <span class="icon">‹</span>
           </button>
-          <div class="carousel" ref="carouselRef" @mouseenter="stopAutoSlide" @mouseleave="startAutoSlide">
+          <div class="carousel" ref="carouselRef">
             <div class="carousel-track" :style="{ transform: `translateX(-${currentIndex * slideWidth}px)` }">
               <div v-for="(book, index) in featuredBooks" :key="`featured-${book.id}`"
-                   class="carousel-item" :class="{ 'active': index === currentIndex }">
+                   class="carousel-item" :style="{ width: `${slideWidth}px` }">
                 <div class="book-card featured">
                   <div class="book-image-container">
                     <img :src="book.coverImage" style="width: 300px; height: 250px;" :alt="book.title" class="book-image" />
@@ -326,7 +339,7 @@ const setViewMode = (mode) => {
               </div>
             </div>
           </div>
-          <button class="carousel-btn right" @click="nextSlide">
+          <button class="carousel-btn right" @click="nextSlide" :disabled="currentIndex === featuredBooks.length - 1">
             <span class="icon">›</span>
           </button>
         </div>
@@ -406,7 +419,7 @@ const setViewMode = (mode) => {
           </div>
 
           <div class="currency-selector">
-            <select v-model="selectedCurrency" class="currency-select" :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
+            <select v-model="store.state.currency.selectedCurrency" class="currency-select" :style="{ backgroundColor: getThemeStyles.selectBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
               <option value="TRY">TRY (₺)</option>
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>
@@ -426,7 +439,7 @@ const setViewMode = (mode) => {
       </section>
 
       <section class="all-books">
-        <h3 class="section-title">Tüm Kitaplar</h3>
+        <h3 class="section-title" style="padding: 5px">Tüm Kitaplar</h3>
         <div v-if="isLoading && !filteredBooks.length" class="loading-message">
           <span class="loading-spinner"></span>
           <span>Kitaplar yükleniyor...</span>
@@ -434,8 +447,8 @@ const setViewMode = (mode) => {
         <div v-else-if="!filteredBooks.length" class="no-books-message">
           Kriterlere uygun kitap bulunamadı. Lütfen filtrelerinizi değiştirin.
         </div>
-        <div v-else class="book-display" :class="viewMode">
-          <div v-for="book in filteredBooks" :key="`book-${book.id}`"
+        <div v-else class="book-display" :class="viewMode" ref="bookListContainer">
+          <div v-for="book in visibleBooks" :key="`book-${book.id}`"
                class="book-item" :class="{ 'list-item': viewMode === 'list' }">
             <div class="book-card" :class="{ 'list-card': viewMode === 'list' }" :style="{ borderColor: getThemeStyles.borderColor, boxShadow: getThemeStyles.boxShadow, backgroundColor: getThemeStyles.inputBackgroundColor }">
               <div class="book-image-container">
@@ -477,7 +490,6 @@ const setViewMode = (mode) => {
         </div>
       </section>
 
-      <!-- New Discounted Books Section -->
       <section class="discounted-books" v-if="discountedBooks.length > 0">
         <h3 class="section-title">İndirimli Kitaplar</h3>
         <div class="book-display grid">
@@ -505,7 +517,6 @@ const setViewMode = (mode) => {
         </div>
       </section>
 
-      <!-- New Free Books Section -->
       <section class="free-books" v-if="freeBooks.length > 0">
         <h3 class="section-title">Ücretsiz Kitaplar</h3>
         <div class="book-display grid">
@@ -629,12 +640,7 @@ body {
 .carousel-item {
   min-width: 300px;
   padding: 0 10px;
-  transform: scale(0.9);
   transition: transform 0.3s ease;
-}
-
-.carousel-item.active {
-  transform: scale(1);
 }
 
 /* Carousel navigation butonları */
@@ -672,11 +678,9 @@ body {
   background: rgba(0, 0, 0, 0.8);
 }
 
-/* Carousel indicators */
-.carousel-indicators {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
+.carousel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Tüm Kitaplar Bölümü */
@@ -687,6 +691,8 @@ body {
 .book-display {
   display: grid;
   gap: 20px;
+  height: 800px;
+  overflow-y: auto;
 }
 
 .book-display.grid {

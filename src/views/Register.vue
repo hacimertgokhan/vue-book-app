@@ -33,7 +33,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["login"]),
+    ...mapActions(["user/login"]),
     register() {
       const userData = {
         username: this.username,

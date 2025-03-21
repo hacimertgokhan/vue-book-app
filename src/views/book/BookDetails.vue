@@ -1,335 +1,752 @@
 <template>
-  <div class="fullscreen" :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor }">
-    <div class="book-detail-container" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor }">
-      <div v-if="book" class="book-content">
-        <div class="book-image-section">
-          <img :src="book.coverImage" height="350" :alt="book.title" class="book-cover" />
-          <div class="book-actions">
-            <button class="action-button primary" :style="{ backgroundColor: getThemeStyles.accentColor, color: getThemeStyles.buttonTextColor }">
-              Satın Al
-            </button>
-            <button class="action-button secondary" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor, borderColor: getThemeStyles.borderColor }">
-              <span class="heart-icon">♥</span> Favorilere Ekle
-            </button>
-            <router-link to="/" class="back-button" :style="{ color: getThemeStyles.accentColor }">
-              <span class="back-icon">←</span> Ana Sayfaya Dön
-            </router-link>
+  <Layout>
+    <div
+        class="fullscreen"
+        :style="{
+      backgroundColor: getThemeStyles.backgroundColor,
+      color: getThemeStyles.textColor,
+    }"
+    >
+      <div
+          class="book-detail-container"
+          :style="{
+        backgroundColor: getThemeStyles.backgroundColor,
+        color: getThemeStyles.textColor,
+      }"
+      >
+        <div
+            v-if="book"
+            class="book-main-section"
+            :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }"
+        >
+          <div class="book-image-container">
+            <img
+                :src="book.coverImage || '/default-book-cover.jpg'"
+                alt="Kitap Kapağı"
+                class="book-cover"
+            />
+            <div class="book-actions">
+              <button
+                  class="action-button primary"
+                  :style="{
+                backgroundColor: getThemeStyles.accentColor,
+                color: getThemeStyles.buttonTextColor,
+              }"
+                  @click="toggleFavorite"
+              >
+                <i class="fas fa-bookmark"></i>
+                {{ isFavorite ? "Kitaplıktan Çıkar" : "Kitaplığıma Ekle" }}
+              </button>
+              <button
+                  class="action-button secondary"
+                  :style="{
+                backgroundColor: getThemeStyles.backgroundColor,
+                color: getThemeStyles.textColor,
+                borderColor: getThemeStyles.borderColor,
+              }"
+                  @click="shareBook"
+              >
+                <i class="fas fa-share-alt"></i> Paylaş
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div class="book-info-section">
-          <h1 class="book-title" :style="{ color: getThemeStyles.textColor }">{{ book.title }}</h1>
+          <div class="book-info">
+            <div
+                class="book-category"
+                :style="{ color: getThemeStyles.accentColor }"
+            >
+              {{ book.category }}
+            </div>
+            <h1 class="book-title" :style="{ color: getThemeStyles.textColor }">
+              {{ book.title }}
+            </h1>
+            <div class="book-author" :style="{ color: getThemeStyles.labelColor }">
+              {{ book.author }}
+            </div>
 
-          <div class="book-meta" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }">
-            <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
-              <span class="label" :style="{ color: getThemeStyles.labelColor }">Yazar</span>
-              <span class="value">{{ book.author }}</span>
+            <div class="book-stats">
+              <div
+                  class="stat-item"
+                  :style="{ borderColor: getThemeStyles.borderColor }"
+              >
+                <div
+                    class="stat-value"
+                    :style="{ color: getThemeStyles.accentColor }"
+                >
+                  {{ book.rating }}
+                </div>
+                <div
+                    class="stat-label"
+                    :style="{ color: getThemeStyles.labelColor }"
+                >
+                  Puan
+                </div>
+              </div>
+              <div
+                  class="stat-item"
+                  :style="{ borderColor: getThemeStyles.borderColor }"
+              >
+                <div class="stat-value">{{ book.reviewCount }}</div>
+                <div
+                    class="stat-label"
+                    :style="{ color: getThemeStyles.labelColor }"
+                >
+                  Değerlendirme
+                </div>
+              </div>
+              <div
+                  class="stat-item"
+                  :style="{ borderColor: getThemeStyles.borderColor }"
+              >
+                <div class="stat-value">{{ book.pageCount }}</div>
+                <div
+                    class="stat-label"
+                    :style="{ color: getThemeStyles.labelColor }"
+                >
+                  Sayfa
+                </div>
+              </div>
             </div>
-            <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
-              <span class="label" :style="{ color: getThemeStyles.labelColor }">Kategori</span>
-              <span class="value category-tag">{{ book.category }}</span>
-            </div>
-            <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
-              <span class="label" :style="{ color: getThemeStyles.labelColor }">Yayın Yılı</span>
-              <span class="value">{{ book.year }}</span>
-            </div>
-            <div class="meta-item" :style="{ color: getThemeStyles.textColor }">
-              <span class="label" :style="{ color: getThemeStyles.labelColor }">Sayfa Sayısı</span>
-              <span class="value">{{ book.pageCount }}</span>
-            </div>
-          </div>
 
-          <div class="book-description" :style="{ color: getThemeStyles.textColor }">
-            <h2 :style="{ color: getThemeStyles.textColor }">Kitap Hakkında</h2>
-            <p>{{ book.summary }}</p>
-          </div>
-
-          <div class="price-section" v-if="book.price" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }">
-            <div class="price-tag" v-if="book.discountedPrice">
-              <span class="original-price">{{ book.price }}₺</span>
-              <span class="discounted-price">{{ book.discountedPrice }}₺</span>
-              <span class="discount-badge">
-                %{{ Math.round((1 - book.discountedPrice/book.price) * 100) }} İndirim
-              </span>
+            <div class="book-description" :style="{ color: getThemeStyles.textColor }">
+              <h3>Kitap Hakkında</h3>
+              <p>{{ book.description }}</p>
             </div>
-            <div class="price-tag" v-else>
-              <span class="current-price">{{ book.price }}₺</span>
+
+            <div class="book-details">
+              <div
+                  class="detail-row"
+                  :style="{ borderColor: getThemeStyles.borderColor }"
+              >
+                <div
+                    class="detail-label"
+                    :style="{ color: getThemeStyles.labelColor }"
+                >
+                  Yayınevi:
+                </div>
+                <div class="detail-value">{{ book.publisher }}</div>
+              </div>
+              <div
+                  class="detail-row"
+                  :style="{ borderColor: getThemeStyles.borderColor }"
+              >
+                <div
+                    class="detail-label"
+                    :style="{ color: getThemeStyles.labelColor }"
+                >
+                  Yayın Tarihi:
+                </div>
+                <div class="detail-value">{{ book.publishDate }}</div>
+              </div>
+              <div
+                  class="detail-row"
+                  :style="{ borderColor: getThemeStyles.borderColor }"
+              >
+                <div
+                    class="detail-label"
+                    :style="{ color: getThemeStyles.labelColor }"
+                >
+                  ISBN:
+                </div>
+                <div class="detail-value">{{ book.isbn }}</div>
+              </div>
+              <div
+                  class="detail-row"
+                  :style="{ borderColor: getThemeStyles.borderColor }"
+              >
+                <div
+                    class="detail-label"
+                    :style="{ color: getThemeStyles.labelColor }"
+                >
+                  Dil:
+                </div>
+                <div class="detail-value">{{ book.language }}</div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Yorum Bölümü -->
-        <div class="comments-section" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }">
-          <h2 :style="{ color: getThemeStyles.textColor }">Yorumlar</h2>
-          <div v-if="currentUser" class="comment-form">
-            <div class="comment-avatar">
-              <img :src="currentUser.avatar || ''" alt="Profil Fotoğrafı">
+        <div
+            class="comments-section"
+            :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }"
+        >
+          <div class="comments-header">
+            <h2 :style="{ color: getThemeStyles.textColor }">
+              Yorumlar
+              <span
+                  class="comment-count"
+                  :style="{ backgroundColor: getThemeStyles.accentColor }"
+              >
+              {{ comments.length }}
+            </span>
+            </h2>
+            <div class="comments-filter">
+              <button
+                  class="filter-button"
+                  :style="{
+                backgroundColor: getThemeStyles.backgroundColor,
+                color: getThemeStyles.textColor,
+                borderColor: getThemeStyles.borderColor,
+              }"
+              >
+                En Yeniler
+                <span class="filter-icon">↓</span>
+              </button>
             </div>
-            <textarea v-model="newCommentText" placeholder="Yorumunuzu buraya yazın..." :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor }"></textarea>
-            <button @click="addComment" :style="{ backgroundColor: getThemeStyles.accentColor, color: getThemeStyles.buttonTextColor }">Yorum Ekle</button>
           </div>
-          <p v-else :style="{ color: getThemeStyles.textColor }">Yorum yapmak için lütfen giriş yapın.</p>
+
+          <div v-if="currentUser?.valueOf()" class="comment-form">
+            <div
+                class="comment-input-wrapper"
+                :style="{ backgroundColor: getThemeStyles.backgroundColor }"
+            >
+              <div class="comment-avatar">
+                <img
+                    :src="currentUser.valueOf().avatar || 'https://i.pravatar.cc/48?img=1'"
+                    alt="Profil Fotoğrafı"
+                />
+              </div>
+              <textarea
+                  v-model="newCommentText"
+                  placeholder="Bu kitap hakkında ne düşünüyorsunuz?"
+                  :style="{
+                backgroundColor: getThemeStyles.backgroundColor,
+                color: getThemeStyles.textColor,
+                borderColor: getThemeStyles.borderColor,
+              }"
+              ></textarea>
+            </div>
+            <div class="comment-actions">
+              <button
+                  class="cancel-button"
+                  :style="{
+                backgroundColor: getThemeStyles.backgroundColor,
+                color: getThemeStyles.textColor,
+                borderColor: getThemeStyles.borderColor,
+              }"
+                  @click="cancelComment"
+              >
+                İptal
+              </button>
+              <button
+                  @click="addComment"
+                  class="submit-button"
+                  :style="{
+                backgroundColor: getThemeStyles.accentColor,
+                color: getThemeStyles.buttonTextColor,
+              }"
+              >
+                Yorum Ekle
+              </button>
+            </div>
+          </div>
 
           <div v-if="comments && comments.length > 0" class="comment-list">
-            <div v-for="comment in comments" :key="comment.id" class="comment-item" :style="{ backgroundColor: getThemeStyles.backgroundColor, color: getThemeStyles.textColor }">
-              <div class="comment-avatar">
-                <img :src="comment.avatar" alt="Kullanıcı Avatarı">
-              </div>
-              <div class="comment-content">
-                <div class="comment-header">
-                  <span class="comment-username" :style="{ color: getThemeStyles.accentColor }">{{ comment.username }}</span>
-                  <span class="comment-date">{{ formatDate(comment.id) }}</span>
+            <div
+                v-for="comment in comments"
+                :key="comment.id"
+                class="comment-item"
+                :style="{
+              backgroundColor: getThemeStyles.backgroundColor,
+              borderColor: getThemeStyles.borderColor,
+            }"
+            >
+              <div class="comment-main">
+                <div class="comment-avatar">
+                  <img :src="comment.avatar" alt="Kullanıcı Avatarı" />
                 </div>
-                <p class="comment-text">
-                  {{ comment.text }}
-                </p>
+                <div class="comment-content">
+                  <div class="comment-header">
+                    <div class="user-info">
+                    <span
+                        class="comment-username"
+                        :style="{ color: getThemeStyles.accentColor }"
+                    >
+                      {{ comment.username }}
+                    </span>
+                      <span
+                          class="user-badge"
+                          :style="{ backgroundColor: getThemeStyles.accentColor + '20' }"
+                      >
+                      Okuyucu
+                    </span>
+                    </div>
+                    <span
+                        class="comment-date"
+                        :style="{ color: getThemeStyles.labelColor }"
+                    >
+                    {{ formatDate(comment.id) }}
+                  </span>
+                  </div>
+                  <p class="comment-text">{{ comment.text }}</p>
+                  <div class="comment-actions">
+                    <button
+                        class="action-btn"
+                        :style="{ color: getThemeStyles.labelColor }"
+                    >
+                      <span class="action-icon">👍</span>
+                      Beğen ({{ comment.likes || 0 }})
+                    </button>
+                    <button
+                        class="action-btn"
+                        :style="{ color: getThemeStyles.labelColor }"
+                        @click="replyToComment(comment)"
+                    >
+                      <span class="action-icon">💬</span>
+                      Yanıtla
+                    </button>
+                    <button
+                        v-if="currentUser?.valueOf().user?.username === comment.username"
+                        class="action-btn"
+                        :style="{ color: getThemeStyles.labelColor }"
+                        @click="editComment(comment)"
+                    >
+                      <span class="action-icon">✍️</span>
+                      Düzenle
+                    </button>
+                    <button
+                        v-if="currentUser?.valueOf().user?.username === comment.username"
+                        class="action-btn"
+                        :style="{ color: getThemeStyles.labelColor }"
+                        @click="deleteComment(comment)"
+                    >
+                      <span class="action-icon">🗑️</span>
+                      Sil
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <p v-else :style="{ color: getThemeStyles.textColor }">Bu kitap için henüz yorum yapılmamış. İlk yorumu siz yapın!</p>
+          <div v-else class="login-prompt" :style="{ color: getThemeStyles.textColor }">
+            Yorum yapmak için lütfen
+            <a href="/login" :style="{ color: getThemeStyles.accentColor }">giriş yapın</a>.
+          </div>
+          <div
+              v-if="!currentUser?.valueOf()"
+              class="no-comments"
+              :style="{
+            backgroundColor: getThemeStyles.backgroundColor,
+            color: getThemeStyles.labelColor,
+          }"
+          >
+            <span class="no-comments-icon">💭</span>
+            <p>Yorumları görmek için lütfen giriş yapın!</p>
+          </div>
         </div>
-      </div>
 
-      <div v-else class="not-found">
-        <h2>Kitap Bulunamadı</h2>
-        <p>Aradığınız kitap mevcut değil veya kaldırılmış olabilir.</p>
-        <router-link to="/" class="back-button not-found-back" :style="{ color: getThemeStyles.accentColor }">
-          <span class="back-icon">←</span> Ana Sayfaya Dön
-        </router-link>
+        <!-- Benzer Kitaplar Bölümü -->
+        <div
+            class="similar-books-section"
+            :style="{ backgroundColor: getThemeStyles.inputBackgroundColor }"
+        >
+          <h2 :style="{ color: getThemeStyles.textColor }">Benzer Kitaplar</h2>
+
+          <div class="similar-books-grid">
+            <div
+                v-for="similarBook in similarBooks"
+                :key="similarBook.id"
+                class="similar-book-card"
+                :style="{
+              backgroundColor: getThemeStyles.backgroundColor,
+              borderColor: getThemeStyles.borderColor,
+            }"
+                @click="navigateToBook(similarBook.id)"
+            >
+              <img
+                  :src="similarBook.coverImage"
+                  alt="Kitap Kapağı"
+                  class="similar-book-cover"
+              />
+              <div class="similar-book-info">
+                <h4 :style="{ color: getThemeStyles.textColor }">
+                  {{ similarBook.title }}
+                </h4>
+                <p :style="{ color: getThemeStyles.labelColor }">
+                  {{ similarBook.author }}
+                </p>
+                <div
+                    class="similar-book-rating"
+                    :style="{ color: getThemeStyles.accentColor }"
+                >
+                  <span class="rating-stars">★★★★☆</span>
+                  <span>{{ similarBook.rating }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+            class="return-home-button"
+            @click="returnToHomePage"
+            :style="{
+              backgroundColor: getThemeStyles.backgroundColor,
+              color: getThemeStyles.textColor,
+              borderColor: getThemeStyles.borderColor,
+          }"
+        >
+          Ana Sayfaya Dön
+        </button>
       </div>
     </div>
-  </div>
+
+  </Layout>
 </template>
+
+<script setup>
+import { ref, reactive, computed, onMounted, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useToast } from "vue-toastification";
+import { useStore } from "vuex";
+import Layout from "@/components/Layout.vue";
+
+const toast = useToast();
+const router = useRouter();
+const route = useRoute();
+const store = useStore();
+
+const theme = computed(() => store.state.ui.theme);
+const bookStore = computed(() => store.state.books);
+
+const bookId = route.params.id;
+const book = ref(null);
+
+const similarBooks = ref([]);
+
+const currentUser = computed(() => store.state.user.user || { user: null });
+
+const newCommentText = ref("");
+const isFavorite = ref(false);
+
+const editingComment = ref(null);
+const replyingToComment = ref(null);
+
+const getThemeStyles = computed(() => {
+  const isDarkTheme = theme.value === "dark";
+  return {
+    backgroundColor: isDarkTheme ? "#09090b" : "#FFFFFF",
+    textColor: isDarkTheme ? "#e2e2e2" : "#333333",
+    borderColor: isDarkTheme ? "#202020" : "#DDDDDD",
+    accentColor: "#007bff",
+    buttonTextColor: "#FFFFFF",
+    labelColor: isDarkTheme ? "#a0a0a0" : "#777",
+    boxShadow: isDarkTheme
+        ? "0 4px 12px rgba(255, 255, 255, 0.1)"
+        : "0 4px 12px rgba(0, 0, 0, 0.2)",
+    inputBackgroundColor: isDarkTheme ? "#101010" : "#f9f9f9",
+    selectBackgroundColor: isDarkTheme ? "#101010" : "#f9f9f9",
+  };
+});
+
+const comments = computed(() => store.state.comments.comments[bookId] || []);
+
+const addComment = async () => {
+  if (newCommentText.value.trim() === "") return;
+
+  const comment = {
+    id: Date.now(),
+    username: currentUser.value.user?.username || "Misafir",
+    avatar: currentUser.value.user?.avatar || "https://i.pravatar.cc/48?img=1",
+    text: newCommentText.value,
+    likes: 0,
+  };
+
+  await store.dispatch("comments/addComment", { bookId: parseInt(bookId), comment });
+  newCommentText.value = "";
+  toast.success("Yorumunuz başarıyla eklendi!");
+};
+
+const formatDate = (timestamp) => {
+  const date = new Date(timestamp);
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+const navigateToBook = (bookId) => {
+  router.push(`/book/${bookId}`);
+};
+
+const returnToHomePage = () => {
+  router.push("/");
+};
+
+const toggleFavorite = () => {
+  isFavorite.value = !isFavorite.value;
+  toast.success(
+      isFavorite.value
+          ? "Kitap favorilerinize eklendi!"
+          : "Kitap favorilerinizden çıkarıldı!"
+  );
+};
+
+const shareBook = () => {
+  const shareUrl = `${window.location.origin}/book/${bookId}`;
+
+  navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => {
+        toast.success("Kitap bağlantısı panoya kopyalandı!");
+      })
+      .catch((err) => {
+        console.error("Panoya kopyalama başarısız oldu: ", err);
+        toast.error("Kitap bağlantısı kopyalanamadı.");
+      });
+};
+
+const cancelComment = () => {
+  newCommentText.value = "";
+};
+
+const editComment = (comment) => {
+  editingComment.value = comment;
+  newCommentText.value = comment.text;
+};
+
+const deleteComment = (commentToDelete) => {
+
+  toast.success("Yorum başarıyla silindi!");
+};
+
+const replyToComment = (comment) => {
+  replyingToComment.value = comment;
+  toast.info(`@${comment.username} kullanıcısına yanıt veriyorsunuz.`);
+};
+
+onMounted(async () => {
+  try {
+    await store.dispatch("books/fetchBooks");
+    book.value = store.getters["books/getBookById"](parseInt(bookId));
+
+    if (!book.value) {
+      toast.error("Kitap bulunamadı!");
+      router.push("/");
+      return;
+    }
+
+    await store.dispatch("comments/fetchComments", parseInt(bookId));
+
+    similarBooks.value = bookStore.value.books
+        .filter((b) => b.category === book.value.category && b.id !== book.value.id)
+        .slice(0, 4);
+  } catch (error) {
+    console.error("Kitap verileri yüklenirken hata oluştu:", error);
+    toast.error("Kitap bilgileri yüklenirken bir hata oluştu.");
+  }
+});
+</script>
 
 <style scoped>
 .fullscreen {
-  width: 100%;
-  height: 100%;
-  position: absolute;
+  min-height: 100vh;
+  padding: 20px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .book-detail-container {
-  max-width: 1280px;
-  margin: 2rem auto;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.book-main-section {
+  display: flex;
+  gap: 2rem;
   padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  border-radius: 24px;
 }
 
-.book-content {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 3rem;
-  align-items: start;
-}
-
-.book-image-section {
-  padding: 1rem;
-}
-
-.book-cover {
-  width: 100%;
-  max-width: 400px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.book-cover:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-}
-
-.book-actions {
-  margin-top: 2rem;
+.book-image-container {
+  flex: 0 0 300px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
+.book-cover {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.book-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
 .action-button {
-  padding: 1rem;
+  padding: 0.8rem 1.2rem;
   border-radius: 12px;
   border: none;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.action-button.primary {
-  box-shadow: 0 4px 14px rgba(0, 123, 255, 0.3);
-}
-
-.action-button.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
 }
 
 .action-button.secondary {
   border: 1px solid;
-  background-clip: padding-box;
 }
 
-.action-button.secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+.book-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.heart-icon {
-  color: #ff4d4d;
-  margin-right: 0.5rem;
-}
-
-.back-button {
-  display: inline-flex;
-  align-items: center;
-  margin-top: 1.5rem;
-  text-decoration: none;
+.book-category {
+  font-size: 0.9rem;
   font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.back-button:hover {
-  transform: translateX(-5px);
-}
-
-.back-icon {
-  margin-right: 0.5rem;
-  font-size: 1.2rem;
-}
-
-.book-info-section {
-  padding: 1rem;
+  text-transform: uppercase;
 }
 
 .book-title {
   font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: 2rem;
+  font-weight: 700;
+  margin: 0;
   line-height: 1.2;
 }
 
-.book-meta {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  padding: 1.5rem;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-}
-
-.meta-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.label {
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.value {
-  font-size: 1.1rem;
+.book-author {
+  font-size: 1.3rem;
   font-weight: 500;
 }
 
-.category-tag {
-  padding: 0.5rem 1rem;
-  background: rgba(255,255,255,0.1);
-  border-radius: 20px;
-  font-size: 0.95rem;
-}
-
-.book-description {
-  margin: 2rem 0;
-  line-height: 1.8;
-}
-
-.book-description h2 {
-  font-size: 1.6rem;
-  margin-bottom: 1rem;
-  font-weight: 700;
-}
-
-.price-section {
-  padding: 1.5rem;
-  border-radius: 16px;
-  margin-top: 2rem;
-}
-
-.price-tag {
+.book-stats {
   display: flex;
+  gap: 2rem;
+  margin: 1rem 0;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+  padding: 0.8rem 1.5rem;
+  border-right: 1px solid;
 }
 
-.original-price {
-  font-size: 1.2rem;
-  text-decoration: line-through;
-  opacity: 0.7;
+.stat-item:last-child {
+  border-right: none;
 }
 
-.discounted-price, .current-price {
-  font-size: 2rem;
+.stat-value {
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #4ade80;
 }
 
-.discount-badge {
-  padding: 0.5rem 1rem;
-  background: #4ade80;
-  color: white;
-  border-radius: 20px;
-  font-size: 0.95rem;
+.stat-label {
+  font-size: 0.9rem;
+}
+
+.book-description h3 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.book-description p {
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+.book-details {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1.5rem;
+}
+
+.detail-row {
+  display: flex;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  flex: 0 0 150px;
   font-weight: 600;
 }
 
-.not-found {
-  text-align: center;
-  padding: 4rem 2rem;
+.detail-value {
+  flex: 1;
 }
 
-.not-found h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.not-found-back {
-  margin-top: 2rem;
-}
-
-/* Yorumlar Bölümü */
+/* Yorum Bölümü */
 .comments-section {
-  margin-top: 3rem;
+  margin-top: 1rem;
   padding: 2rem;
-  border-radius: 16px;
+  border-radius: 24px;
 }
 
-.comments-section h2 {
+.comments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.comments-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   font-size: 1.8rem;
-  margin-bottom: 1.5rem;
   font-weight: 700;
 }
 
-/* Yorum Formu */
-.comment-form {
+.comment-count {
+  font-size: 0.9rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  color: white;
+}
+
+.comments-filter {
   display: flex;
-  align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+}
+
+.filter-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.2rem;
+  border-radius: 12px;
+  border: 1px solid;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.comment-input-wrapper {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 1rem;
 }
 
 .comment-avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .comment-avatar img {
@@ -338,48 +755,51 @@
   object-fit: cover;
 }
 
-.comment-form textarea {
+textarea {
   flex: 1;
+  min-height: 100px;
   padding: 1rem;
   border-radius: 12px;
-  border: none;
+  border: 1px solid;
   resize: vertical;
   font-size: 1rem;
+  line-height: 1.5;
   transition: all 0.3s ease;
 }
 
-.comment-form textarea:focus {
-  outline: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.comment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
-.comment-form button {
-  padding: 1rem 1.5rem;
+.submit-button,
+.cancel-button {
+  padding: 0.8rem 1.5rem;
   border-radius: 12px;
   border: none;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap; /* Butonun içeriği kaydırmasını engeller */
+  transition: all 0.2s ease;
 }
 
-/* Yorum Listesi */
-.comment-list {
-  margin-top: 2rem;
+.cancel-button {
+  border: 1px solid;
 }
 
 .comment-item {
-  display: flex;
-  gap: 1rem;
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: 16px;
   margin-bottom: 1rem;
-  transition: all 0.3s ease;
+  border: 1px solid;
+  transition: all 0.2s ease;
 }
 
-.comment-item:hover {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+.comment-main {
+  display: flex;
+  gap: 1rem;
 }
 
 .comment-content {
@@ -393,173 +813,209 @@
   margin-bottom: 0.5rem;
 }
 
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
 .comment-username {
   font-weight: 600;
-  margin-right: 0.5rem;
   font-size: 1rem;
+}
+
+.user-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
 }
 
 .comment-date {
-  font-size: 0.8rem;
-  color: #999;
+  font-size: 0.85rem;
 }
 
 .comment-text {
-  font-size: 1rem;
+  margin: 0.8rem 0;
   line-height: 1.6;
 }
 
+.action-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.action-icon {
+  font-size: 1.1rem;
+}
+
+.no-comments {
+  text-align: center;
+  padding: 3rem 2rem;
+  border-radius: 16px;
+}
+
+.no-comments-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.login-prompt {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+}
+
+.login-prompt a {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Benzer Kitaplar Bölümü */
+.similar-books-section {
+  padding: 2rem;
+  border-radius: 24px;
+}
+
+.similar-books-section h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.similar-books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.similar-book-card {
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid;
+}
+
+.similar-book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.similar-book-cover {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.similar-book-info {
+  padding: 1rem;
+}
+
+.similar-book-info h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.similar-book-info p {
+  margin: 0 0 0.8rem 0;
+  font-size: 0.9rem;
+}
+
+.similar-book-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.return-home-button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  margin: 20px auto;
+  display: block;
+  max-width: 200px;
+}
+
+/* Responsive Tasarım */
 @media (max-width: 1024px) {
-  .book-content {
-    grid-template-columns: 1fr 1.5fr;
-    gap: 2rem;
+  .book-main-section {
+    flex-direction: column;
   }
 
-  .book-title {
-    font-size: 2rem;
-  }
-
-  .comments-section {
-    padding: 1.5rem;
+  .book-image-container {
+    flex: 0 0 auto;
+    max-width: 300px;
+    margin: 0 auto;
   }
 }
 
 @media (max-width: 768px) {
-  .book-detail-container {
-    margin: 1rem;
+  .comments-section,
+  .similar-books-section,
+  .book-main-section {
     padding: 1.5rem;
   }
 
-  .book-content {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .book-image-section {
-    max-width: 320px;
-    margin: 0 auto;
-  }
-
-  .book-title {
-    font-size: 1.8rem;
-  }
-
-  .book-meta {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
-}
-
-@media (max-width: 480px) {
-  .book-detail-container {
-    padding: 1rem;
-  }
-
-  .action-button {
-    padding: 0.8rem;
-    font-size: 0.9rem;
-  }
-
-  .book-title {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .price-tag {
+  .comments-header {
     flex-direction: column;
+    gap: 1rem;
     align-items: flex-start;
-    gap: 0.5rem;
   }
 
-  .comments-section {
-    padding: 1rem;
+  .comment-main {
+    flex-direction: column;
+  }
+
+  .book-stats {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .stat-item {
+    flex: 1 0 calc(50% - 1rem);
+    border-right: none;
+    border-bottom: 1px solid;
+    margin-bottom: 0.5rem;
+  }
+
+  .similar-books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  @media (max-width: 480px) {
+    .book-title {
+      font-size: 1.8rem;
+    }
+
+    .similar-books-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .detail-row {
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .detail-label {
+      flex: 0 0 auto;
+    }
   }
 }
 </style>
-
-<script>
-import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { useStore } from 'vuex';
-
-export default {
-  setup() {
-    const route = useRoute();
-    const store = useStore();
-    const book = ref(null);
-    const newCommentText = ref('');
-
-    const theme = computed(() => store.state.ui.theme);
-    const currentUser = computed(() => store.state.user.user);
-
-    const getThemeStyles = computed(() => {
-      const isDarkTheme = theme.value === 'dark';
-      return {
-        backgroundColor: isDarkTheme ? '#09090b' : '#FFFFFF',
-        textColor: isDarkTheme ? '#e2e2e2' : '#333333',
-        borderColor: isDarkTheme ? '#202020' : '#DDDDDD',
-        accentColor: '#007bff',
-        inputBackgroundColor: isDarkTheme ? '#101010' : '#f9f9f9',
-        buttonTextColor: '#FFFFFF',
-        labelColor: isDarkTheme ? '#909090' : '#777777',
-      };
-    });
-
-    const bookId = computed(() => parseInt(route.params.id));
-    const comments = computed(() => store.state.comments.comments[bookId.value] || []);
-
-    onMounted(() => {
-      const storedBooks = localStorage.getItem('books');
-      if (storedBooks) {
-        const books = JSON.parse(storedBooks);
-        book.value = books.find((b) => b.id === bookId.value);
-      }
-      store.dispatch('comments/fetchComments', bookId.value);
-    });
-
-    const addComment = () => {
-      if (!currentUser.value) {
-        alert('Yorum yapmak için lütfen giriş yapın.');
-        return;
-      }
-
-      if (newCommentText.value.trim() === '') {
-        alert('Lütfen yorumunuzu yazın.');
-        return;
-      }
-
-      const comment = {
-        id: Date.now(),
-        text: newCommentText.value,
-        userId: currentUser.value.id,
-        username: currentUser.value.username,
-        avatar: currentUser.value.avatar // Kullanıcının avatarını da ekleyelim
-      };
-
-      store.dispatch('comments/addComment', { bookId: bookId.value, comment });
-      newCommentText.value = '';
-    };
-
-    // Tarih formatlama fonksiyonu
-    const formatDate = (timestamp) => {
-      const date = new Date(timestamp);
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-
-      return `${day}/${month}/${year} ${hours}:${minutes}`;
-    };
-
-    return {
-      book,
-      newCommentText,
-      comments,
-      currentUser,
-      getThemeStyles,
-      addComment,
-      formatDate //fonksiyonu export ettik
-    };
-  },
-};
-</script>
