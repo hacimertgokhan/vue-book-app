@@ -1,4 +1,4 @@
-<template >
+<template>
   <div class="fullscreen" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor}">
     <div class="login-container" :style="{ backgroundColor: getThemeStyles.containerBackgroundColor, borderColor: getThemeStyles.borderColor, color: getThemeStyles.textColor }">
       <p :style="{ color: getThemeStyles.textColor }"><strong>Merhaba</strong>,<br/>Devam etmek için istenilen bilgileri doldurunuz.</p>
@@ -21,6 +21,7 @@ import "vue-toastification/dist/index.css";
 import { mapActions } from "vuex";
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import bcrypt from 'bcryptjs'; // bcryptjs kütüphanesini import et
 
 export default {
   data() {
@@ -57,9 +58,18 @@ export default {
       const users = JSON.parse(localStorage.getItem("users")) || [];
       const user = users.find(user => user.email === this.email);
 
-      if (!user || user.password !== this.password) {
-        this.errorMessage = "E-posta veya şifre hatalı!";
-        this.toast.error("E-posta veya şifre hatalı!");
+      if (!user) {
+        this.errorMessage = "E-Posta veya şifre hatalı!";
+        this.toast.error("E-Posta veya şifre hatalı!");
+        return;
+      }
+
+      // bcrypt.compareSync ile şifreyi karşılaştır
+      const passwordMatch = bcrypt.compareSync(this.password, user.password);
+
+      if (!passwordMatch) {
+        this.errorMessage = "E-Posta veya şifre hatalı!";
+        this.toast.error("E-Posta veya şifre hatalı!");
         return;
       }
 
@@ -135,7 +145,6 @@ export default {
   transition: color 0.3s ease;
 }
 
-/* Mobile Responsive */
 @media (max-width: 480px) {
   .login-container {
     padding: 20px;
