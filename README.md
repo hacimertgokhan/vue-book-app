@@ -1,29 +1,56 @@
-# book-app
+# Vue Book App
 
-This template should help get you started developing with Vue 3 in Vite.
+Bu proje, Vue.js kullanarak oluşturulmuş basit bir kitap arama ve görüntüleme uygulamasıdır. Kitapları arayabilir, detaylarını görüntüleyebilir ve favorilerinize ekleyebilirsiniz.
 
-## Recommended IDE Setup
+## Özellikler
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+*   **Kitap Arama:** Başlığa veya yazara göre kitapları arayabilirsiniz.
+*   **Detaylı Kitap Bilgisi:** Her kitap için başlık, yazar, açıklama, yayın tarihi gibi detaylı bilgilere ulaşabilirsiniz.
+*   **Favorilere Ekleme:** Beğendiğiniz kitapları favorilerinize ekleyebilir ve daha sonra kolayca erişebilirsiniz.
+*   **Responsive Tasarım:** Uygulama, farklı ekran boyutlarına uyum sağlayan duyarlı bir tasarıma sahiptir.
 
-## Customize configuration
+## Teknolojiler
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+*   [Vue.js](https://vuejs.org/)
+*   [Vue Router](https://router.vuejs.org/)
+*   [Vuex](https://vuex.vuejs.org/)
+*   [Axios](https://axios-http.com/)
+*   [Tailwind CSS](https://tailwindcss.com/)
+*   [Vueuse](https://vueuse.org/)
+*   [Vite](https://vitejs.dev/)
 
-## Project Setup
+## Kurulum
 
-```sh
-npm install
-```
+1.  Projeyi GitHub'dan klonlayın:
 
-### Compile and Hot-Reload for Development
+    ```bash
+    git clone https://github.com/hacimertgokhan/vue-book-app.git
+    ```
 
-```sh
-npm run dev
-```
+2.  Proje dizinine gidin:
 
-### Compile and Minify for Production
+    ```bash
+    cd vue-book-app
+    ```
 
-```sh
-npm run build
-```
+3.  Bağımlılıkları yükleyin:
+
+    ```bash
+    npm install
+    ```
+
+4.  Geliştirme sunucusunu başlatın:
+
+    ```bash
+    npm run dev
+    ```
+
+    Uygulama genellikle `http://localhost:5173` adresinde çalışacaktır.
+
+## Kullanım
+
+Uygulamayı çalıştırdıktan sonra, kitapları arayabilir, detaylarını görüntüleyebilir ve favorilerinize ekleyebilirsiniz.
+
+## Yapı
+
+Proje aşağıdaki gibi bir klasör yapısına sahiptir:
