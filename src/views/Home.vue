@@ -521,7 +521,7 @@ onUnmounted(() => {
         <h3 class="section-title">Ücretsiz Kitaplar</h3>
         <div class="book-display grid">
           <div v-for="book in freeBooks.slice(0, 4)" :key="`free-${book.id}`" class="book-item">
-            <div class="book-card" :style="{ borderColor: getThemeStyles.borderColor, boxShadow: getThemeStyles.boxShadow, backgroundColor: getThemeStyles.inputBackgroundColor }">
+            <div class="book-card">
               <div class="book-image-container">
                 <img :src="book.coverImage" style="width: 100%; height: 250px;" :alt="book.title" class="book-image" />
 
@@ -683,7 +683,6 @@ body {
   cursor: not-allowed;
 }
 
-/* Tüm Kitaplar Bölümü */
 .all-books {
   margin-bottom: 40px;
 }
@@ -691,7 +690,6 @@ body {
 .book-display {
   display: grid;
   gap: 20px;
-  height: 800px;
   overflow-y: auto;
 }
 
@@ -704,10 +702,8 @@ body {
 }
 
 .book-item {
-  background: #202020;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -808,13 +804,12 @@ body {
   background: rgba(255, 255, 255, 0.6);
 }
 
-/* Kitap kartları */
 .book-card {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  height: 100%;
+  height: fit-content;
   display: flex;
   flex-direction: column;
 }
@@ -907,11 +902,10 @@ body {
   transform: scale(1.2);
 }
 
-/* Filtreleme ve Kontrol Paneli */
 .controls-section {
   padding: 20px;
   border-radius: 10px;
-  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease; /* Tema geçişi için */
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .filter-controls {
@@ -1078,7 +1072,6 @@ body {
   color: #e2e2e2;
 }
 
-/* Responsive Tasarım */
 @media (max-width: 768px) {
   .main-container {
     width: 95%;

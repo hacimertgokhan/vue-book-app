@@ -46,7 +46,7 @@ export default {
       state.user = { ...state.user, ...updatedUser };
       localStorage.setItem('user', JSON.stringify(state.user));
 
-      // allUsers listesini de güncelle
+      
       const index = state.allUsers.findIndex(u => u.id === updatedUser.id);
       if (index !== -1) {
         state.allUsers.splice(index, 1, { ...state.allUsers[index], ...updatedUser });

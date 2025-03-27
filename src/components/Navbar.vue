@@ -10,9 +10,7 @@
 
     <div class="nav-links" :class="{ 'active': isMobileMenuOpen }" :style="themedStyles.navLinks">
       <div class="links-section">
-        <div v-if="currentUser.valueOf().user.role === 1">
-          <router-link  to="/manage" :style="themedStyles.link" @click="closeMobileMenu">Yönet</router-link>
-        </div>
+        <router-link  to="/manage" :style="themedStyles.link" @click="closeMobileMenu">Yönet</router-link>
         <router-link to="/books" :style="themedStyles.link" @click="closeMobileMenu">Kitaplar</router-link>
         <router-link to="/exchange" :style="themedStyles.link" @click="closeMobileMenu">Döviz</router-link>
       </div>
@@ -72,7 +70,7 @@ const toggleDropdown = (event) => {
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
-  // Mobil menü açıkken scroll'u engelle
+
   if (isMobileMenuOpen.value) {
     document.body.style.overflow = 'hidden';
   } else {
@@ -107,7 +105,7 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', closeDropdown);
   window.removeEventListener('resize', closeMenusOnResize);
-  // Sayfadan çıkarken scroll'u eski haline getir
+
   document.body.style.overflow = '';
 });
 

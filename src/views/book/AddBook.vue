@@ -550,16 +550,6 @@ onMounted(() => {
             <p v-if="formErrors.price || formErrors.currency" class="error-message">{{ formErrors.price || formErrors.currency }}</p>
           </div>
 
-          <!-- Exchange rate information -->
-          <div v-if="bookForm.price && Object.keys(exchangeRates).length > 0" class="exchange-rates" :style="{ backgroundColor: getThemeStyles.inputBackgroundColor, color: getThemeStyles.textColor }">
-            <h3 :style="{color: getThemeStyles.textColor}">Diğer Para Birimlerinde:</h3>
-            <div v-if="loading" class="loading" :style="{color: getThemeStyles.textColor}">Döviz kurları yükleniyor...</div>
-            <ul v-else>
-              <li v-for="currency in currencies" :key="currency" :style="{color: getThemeStyles.textColor}">
-                <span>{{ currency }}:</span> {{ convertedPrices[currency] }}
-              </li>
-            </ul>
-          </div>
 
           <div class="form-group">
             <label for="summary" :style="{color: getThemeStyles.textColor}">Kitap Özeti*</label>
